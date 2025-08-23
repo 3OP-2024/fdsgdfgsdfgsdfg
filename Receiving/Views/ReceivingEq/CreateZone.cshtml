@@ -1,0 +1,210 @@
+﻿@model Receiving.Models.HR_PR_EquipmentZone
+@section Css{
+    <style>
+        .readonly-input[readonly] {
+            background-color: #e9ecef; /* สีเทาอ่อน */
+            cursor: not-allowed; /* เปลี่ยน cursor */
+        }
+    </style>
+
+}
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Zone</h3>
+    </div>
+    <div class="card-body">
+        @*<form id="formData">*@
+        <!-- ข้อมูลหลัก -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-2">
+                <label class="form-label">รหัส</label>
+                <input type="text" class="form-control @(string.IsNullOrEmpty(Model?.ZoneID) ? "" : "readonly-input")" maxlength="2" name="CodeID" id="CodeID" placeholder="กรอกรหัส" @(string.IsNullOrEmpty(Model?.ZoneID) ? "" : "readonly") value="@Model?.ZoneID">
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">ชื่อ</label>
+                <textarea class="form-control" name="Name" id="Name" rows="3" placeholder="กรอกชื่อหรือรายละเอียด">@Model?.ZoneName</textarea>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">สถานะ</label>
+                <select name="_typedaystatus" id="Status" class="form-select" asp-items="@ViewBag._typedaystatus"></select>
+            </div>
+        </div>
+
+        <!-- Locations Table -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title">Locations</h3>
+                <button type="button" class="btn btn-brown btn-sm" onclick="addLocationRow()">
+                    <i class="ti ti-plus me-1"></i> เพิ่ม Location
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive mt-5">
+                    <table class="table table-hover table-sm mb-0" id="tblLocations">
+                        <thead class="table-light text-center">
+                            <tr>
+                                <th>Zone</th>
+                                <th>รหัส</th>
+                                <th>ชื่อ</th>
+                                <th>ความจุ</th>
+                                <th>สถานะ</th>
+                                <th>ผู้แก้ไข</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model?.HR_PR_EquipmentLocation != null)
+                            {
+                                @foreach (var item in Model.HR_PR_EquipmentLocation)
+                                {
+                                    <tr>
+                                        <td>
+                                            @item?.ZoneID
+                                        </td>
+                                        <td class="text-left  ">@item?.LocationID</td>
+                                        <td class="text-left  ">
+                                            <input type="text" class="form-control form-control-sm" value="@item?.LocationName" name="LocationName" placeholder="ชื่อ">
+                                        </td>
+                                        <td class="text-left  ">
+                                            <input type="number" class="form-control form-control-sm" name="Capacity" placeholder="ความจุ" value="@item?.Capacity">
+                                        </td>
+                                        @{
+
+                                            var strUsageStatus = item?.UsageStatus == true ? "1" : "0";
+                                        }
+                                        <td class="text-center">
+                                            <select class="form-select form-select-sm" name="LocationStatus"
+                                                    asp-items="ViewBag._typedaystatus"
+                                                    asp-for="@strUsageStatus"></select> 
+                                         </td> 
+                                        <td class="text-left  ">
+                                            @item?.EditName - @item?.EditDate
+                                        </td>
+
+                                        <td class="text-center  ">
+                                            <i class="ti ti-edit"></i>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ปุ่มบันทึก / ล้างค่า -->
+        <div class="row g-3 mt-4">
+            <div class="col-md-12 d-flex justify-content-center">
+                <button type="button" class="btn btn-success me-2" onclick="saveData()">
+                    <i class="ti ti-device-floppy me-1"></i> บันทึกข้อมูล
+                </button>
+
+
+
+                <a href="@Url.Action("ListMasterZone", "ReceivingEq")" class="btn btn-outline-danger btn-md waves-effect waves-light" role="button">ปิด หน้านี้</a>
+
+            </div>
+        </div>
+        @*</form>*@
+    </div>
+</div>
+
+<script>
+
+    function addLocationRow() {
+        const zoneValue = $("#CodeID").val();
+        const rowCount = $("#tblLocations tbody tr").length + 1;
+        const locationNo = zoneValue + String(rowCount).padStart(2, "0");
+
+        const row = `<tr >
+        <td>${zoneValue}</td>
+        <td>${locationNo}</td>
+        <td><input type="text" class="form-control form-control-sm" name="LocationName" placeholder="ชื่อ"></td>
+        <td><input type="number" class="form-control form-control-sm" name="Capacity" placeholder="ความจุ"></td>
+        <td>
+            <select class="form-select form-select-sm" name="LocationStatus">
+                <option value="1">ใช้งาน</option>
+                <option value="0">ไม่ใช้งาน</option>
+            </select>
+        </td>
+        <td>   </td>
+        <td>
+            <button type="button" class="btn btn-danger btn-sm btn-remove" onclick="removeLocationRow(this)">
+                <i class="ti ti-trash"></i>
+            </button>
+        </td>
+    </tr>`;
+
+        $("#tblLocations tbody").append(row);
+
+        // ซ่อนปุ่มลบทั้งหมดก่อน
+        $("#tblLocations tbody .btn-remove").hide();
+        // แล้วแสดงปุ่มลบเฉพาะแถวล่าสุด
+        $("#tblLocations tbody tr:last .btn-remove").show();
+    }
+
+    function removeLocationRow(button) {
+        $(button).closest("tr").remove();
+
+        // หลังจากลบ ให้โชว์ปุ่มลบเฉพาะแถวล่าสุด
+        $("#tblLocations tbody .btn-remove").hide();
+        $("#tblLocations tbody tr:last .btn-remove").show();
+    }
+
+
+
+
+    function saveData() {
+        if (!$("#CodeID").val()) {
+            showWarning("กรุณากรอกรหัส Zone");
+            $("#CodeID").focus();
+            return;
+        }
+
+    const item = {
+        ZoneID: $("#CodeID").val(),
+        ZoneName: $("#Name").val(),
+        UsageStatus: $("#Status").val() === "1",  // แปลงเป็น bool
+        HR_PR_EquipmentLocation: []
+    };
+
+    $("#tblLocations tbody tr").each(function() {
+        const tr = $(this);
+        item.HR_PR_EquipmentLocation.push({
+            ZoneID: $("#CodeID").val(),
+            LocationID: tr.find("td:eq(1)").text().trim(),
+            LocationName: tr.find("input[name='LocationName']").val(),
+            Capacity: tr.find("input[name='Capacity']").val(),
+            UsageStatus: tr.find("select[name='LocationStatus']").val() === "1"
+        });
+    });
+
+    $.ajax({
+        url: '@Url.Action("SaveZone", "ReceivingEq")',
+        type: 'POST', dataType: "json",
+        data: item,
+        beforeSend: function () {
+            ShowLoading();
+        },
+        success: function(res){
+               if (res.success) {
+                        let link =  '';
+                        if ($("#CodeID").val() != "") {
+                            link =  '@Url.Action("ListMasterZone", "ReceivingEq" )';
+                        } else {
+                            link = '@Url.Action("CreateZone", "ReceivingEq")' + "?ID=" + res.id;
+                        }
+
+                        showSuccess("บันทึกสำเร็จ", link);
+                    }
+                    ShowLoading(false);
+        },
+        error: function () {
+            showWarning("เกิดข้อผิดพลาดในการบันทึก"); ShowLoading(false);
+
+        }
+    });
+}
+</script>

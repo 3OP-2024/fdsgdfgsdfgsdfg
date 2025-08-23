@@ -1,0 +1,97 @@
+﻿@*@{
+        var userPrivilege = (IEnumerable<V_SYS_USER_ROLE_PRIVILEGE>)ViewBag.userPrivilege;
+        var P01 = userPrivilege.Any(l => l.SYS_Status == "P01" && l.RightCode == "RC00");
+        var M01 = userPrivilege.Any(l => l.SYS_Status == "M01" && l.RightCode == "RC00");
+    }*@
+
+<div class="container-xl mt-4">
+    <div class="row g-4">
+        <!-- เมนูโปรแกรม -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">เมนูโปรแกรม</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="P01" class="list-group-item  ">
+                            <i class="ti ti-file-text me-2 text-primary"></i> บันทึกใบรับของ
+                        </a>
+
+                       
+                        <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="P02"  class="list-group-item  ">
+                            <i class="ti ti-zoom-check me-2 text-info"></i> ตรวจสอบใบรับของ
+                        </a>
+                        <a asp-controller="ReceivingEq" asp-action="ListAs400" asp-route-statusPage="F02" class="list-group-item  ">
+                            <i class="ti ti-arrow-up-circle me-2 text-success"></i> อัปเดทเข้าระบบ AS400
+                        </a>
+                        <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="F01" class="list-group-item  ">
+                            <i class="ti ti-checklist me-2 text-warning"></i> ใบรับของเสร็จสิ้น
+                        </a>
+                        <a asp-controller="ReceivingEq" asp-action="ListInventory" asp-route-statusPage="P01" class="list-group-item  ">
+                            <i class="ti ti-package me-2 text-orange"></i> จัดเก็บสินค้า
+                        </a>
+                        <a asp-controller="ReceivingEq" asp-action="ListInventory" asp-route-statusPage="F01" class="list-group-item  ">
+                        @*<a asp-controller="ReceivingEq" asp-action="ListInventory" class="list-group-item disabled-link">*@
+                            <i class="ti ti-package-export me-2 text-purple"></i> จัดเก็บสินค้าเสร็จสิ้น
+                        </a>
+                        @* เงื่อนไขสิทธิ์การเข้าถึง *@
+                        @*
+        @if (P01) {
+            <a asp-controller="Sticker" asp-action="StickerPrintMulitiSize" class="list-group-item">
+                <i class="ti ti-printer me-2"></i> ปริ้นสติกเกอร์
+            </a>
+        } else {
+            <a class="list-group-item disabled">
+                <i class="ti ti-printer-off me-2"></i> ปริ้นสติกเกอร์
+            </a>
+        }
+                        *@
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ข้อมูลหลัก -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">ข้อมูลหลัก</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a asp-controller="ReceivingEq" asp-action="ListMasterZone" asp-route-statusPage="M01" class="list-group-item  ">
+                            <i class="ti ti-map-pin me-2"></i> Zone & Location
+                        </a>
+                        <a asp-controller="Sticker" asp-action="ListMasterStickerType" asp-route-statusPage="M01" class="list-group-item disabled-link">
+                            <i class="ti ti-receipt-tax me-2"></i> ข้อมูล VAT Claim Rate
+                        </a>
+                        <a asp-controller="Sticker" asp-action="ListMasterStickerType" asp-route-statusPage="M01" class="list-group-item disabled-link">
+                            <i class="ti ti-building-store me-2"></i> ข้อมูล Branch
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- รายงาน -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">รายงาน</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a asp-controller="Sticker" asp-action="ListMasterStickerType" asp-route-statusPage="M01" class="list-group-item disabled-link">
+                            <i class="ti ti-report-analytics me-2"></i> รายงานสินค้าคงคลัง
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- ถ้ามี JavaScript เพิ่มเติมสามารถใส่ได้ที่นี่ -->
+}

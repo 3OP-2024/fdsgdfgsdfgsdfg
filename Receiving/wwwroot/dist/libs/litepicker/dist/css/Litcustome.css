@@ -1,0 +1,22 @@
+﻿/* สีพื้นหลังและตัวอักษร */
+.custom-datepicker-style {
+    --litepicker-bg-color: #f3f4f6; /* พื้นหลัง */
+    --litepicker-day-color: #1f2937; /* สีข้อความ */
+    --litepicker-hover-bg: #dbeafe; /* สีเมื่อ hover */
+    --litepicker-highlight-color: #3b82f6; /* วันที่เลือก */
+    --litepicker-highlight-text-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* ปุ่มเดือน/ปี */
+.litepicker .container__months .month-item {
+    font-weight: bold;
+    color: #3b82f6;
+}
+
+/* ปุ่มนำทาง */
+.litepicker .button-prev,
+.litepicker .button-next {
+    color: #3b82f6;
+}

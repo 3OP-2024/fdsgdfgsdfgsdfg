@@ -1,0 +1,748 @@
+﻿@model  Receiving.Models.HR_PR_EquipmentReceivingHeader
+
+@{  string Disable = "";
+    if (Model?.SYS_Status != "P01" && !string.IsNullOrEmpty(Model?.RunningID))
+    {
+        Disable = "disabled";
+    }
+    Receiving.Models.Search Search = ViewBag.Search ?? null;
+    if (!string.IsNullOrEmpty( Model?.ReceivingType)) { Search.TypeID = Model?.ReceivingType; }
+    var approve1 = (Model?.SYS_Status == "P02" && ViewBag.approve1 == true ? false : true);
+
+}
+
+
+@section Css{
+    @*<link href="~/css/icons/select2.css" rel="stylesheet" />
+        <link href="~/assets/plugins/bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css" rel="stylesheet" />*@
+    <style>
+        input:disabled,
+        select:disabled,
+        textarea:disabled,
+        button:disabled {
+            cursor: not-allowed !important;
+        }
+
+        .dataTables_empty {
+            text-align: center;
+            color: red;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .textcolorred {
+            color: red;
+        }
+
+        span {
+            border-color: black !important;
+        }
+
+        .card .card {
+            border-color: black;
+            box-shadow: none;
+        }
+
+        #vendorTable thead th {
+            position: sticky;
+            top: 0;
+            /*background: #f8f9fa; /* สีพื้นหลังหัวตาราง */
+            z-index: 1;
+        }
+
+        .table > :not(caption) > * > *, .markdown > table > :not(caption) > * > * {
+            padding: 4px;
+            color: var(--tblr-table-color-state, var(--tblr-table-color-type, var(--tblr-table-color)));
+            background-color: var(--tblr-table-bg);
+            border-bottom-width: var(--tblr-border-width);
+            box-shadow: inset 0 0 0 9999px var(--tblr-table-bg-state, var(--tblr-table-bg-type, var(--tblr-table-accent-bg)));
+        }
+        .form-check-input[type=radio] {
+            border-radius: 50%;
+            border: 2px solid #000; /* เส้นวงกลมสีดำ */
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+            .form-check-input[type=radio]:checked {
+                background-color: #000; /* จุดข้างในเป็นสีดำตอนเลือก */
+                border-color: #000;
+            }
+
+    </style>
+}
+<div class="container-xl">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">รายการใบรับของ</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- Row 1 -->
+            <div class="row mb-1 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">ประเภทการรับ :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <span class="badge   @(Search?.TypeID == "001" ? "bg-orange " : "bg-green ")text-red-fg">@Search?.TypeIDName</span>
+                    <input type="hidden" id="ReceivingType" value="@Search?.TypeID" />
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">สถานะ </label>
+                <div class="col-md-2 col-12">
+                    @Model?.SYS_Status - @Model?.statusPageName
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">เลขที่ใบรับของ :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <label class="form-control-plaintext" id="RunningID">@Model?.RunningID</label>
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่รับของ : <span class="text-danger">*</span></label>
+                <div class="col-md-2 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                        <input type="text" class="form-control DateInput" placeholder="DD/MM/YYYY" name="ReceiveDate" value="@Model?.ReceivingDateTH" @Disable autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Vender No :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-barcode"></i></span>
+                        <input type="text" class="form-control bg-muted" readonly id="vendorID" name="VendorNo" value="@Model?.VendorID"   placeholder="รหัสผู้ขาย">
+                    </div>
+                </div>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    @if (String.IsNullOrEmpty(Model?.RunningID))
+                    {
+                        <button type="button" class="btn btn-info w-100" id="btnOpenModal">
+                            <i class="ti ti-search"></i> ค้นหา
+                        </button>
+                    }
+
+                </div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">เลขที่ใบขอซื้อ : <span class="text-danger">*</span></label>
+                <div class="col-md-2 col-12">
+                    <label class="form-control-plaintext" name="PRNumber" id="requestNo">@Model?.RequestNo</label>
+                </div>
+            </div>
+
+            <!-- Row 3 -->
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Vender Name :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <label class="form-control-plaintext" id="vendorName">@Model?.VendorName</label>
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">แผนกที่เขียนใบขอซื้อ: <span class="text-danger">*</span></label>
+                <div class="col-md-2 col-12">
+                    <label class="form-control-plaintext" name="departmentName" id="departmentName">@Model?.V_HR_MT_Department?.DepartmentIDAndName</label>
+                    <input type="hidden" id="departmentID" value="@Model?.DepartmentID" />
+                </div>
+            </div>
+
+            <!-- Row 4 -->
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Invoice No :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-file-invoice"></i></span>
+                        <input type="text" class="form-control" name="InvoiceNo" value="@Model?.InvoiceNo" @Disable autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Invoice Date : <span class="text-danger">*</span></label>
+                <div class="col-md-2 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                        <input type="text" class="form-control DateInput" placeholder="DD/MM/YYYY" value="@Model?.InvoiceDateTH" @Disable name="InvoiceDate" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 5 -->
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Tax Inv. No :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-receipt-tax"></i></span>
+                        <input type="text" class="form-control" value="@Model?.TaxInvNo" name="TaxInvNo"  @Disable autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Tax Inv. Date : <span class="text-danger">*</span></label>
+                <div class="col-md-2 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                        <input type="text" class="form-control DateInput" value="@Model?.TaxInvDateTH" @Disable  placeholder="DD/MM/YYYY" name="TaxInvDate" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 6 -->
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Tax ID Inv :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-id"></i></span>
+                        <input type="text" class="form-control" name="TaxID" value="@Model?.TaxIDInv" @Disable autocomplete="off">
+                    </div>
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Branch : <span class="text-danger">*</span></label>
+                <div class="col-md-2 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-building-bank"></i></span>
+                        <input type="text" class="form-control" name="Branch" value="@Model?.BranchID"  @Disable autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-hover" id="tblDetail">
+                    <thead>
+                        <tr class="text-center">
+                            <th>ลำดับ</th>
+                            <th>รหัสสินค้า</th>
+                            <th>ชื่อสินค้า</th>
+                            <th>จำนวนที่สั่ง</th>
+                            <th>จำนวนที่รับ</th>
+                            <th>หน่วย</th>
+                            <th>ราคาต่อหน่วย</th>
+                            <th>Amount</th>
+                            <th>Vat. Amount</th>
+                            <th>Claim Rate</th>
+                            <th>Lot No.</th>
+                            <th>วันหมดอายุ</th>
+                            <th>Remark</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.HR_PR_EquipmentReceivingDetail != null)
+                        {
+                            @foreach (var d in Model?.HR_PR_EquipmentReceivingDetail)
+                            {
+                                <tr class="text-center">
+                                    <td>@d.ItemOrder</td>
+                                    <td class="text-left">@d?.CodeID</td>
+                                    <td class="text-left">@d?.CodeName</td>
+                                    <td class="text-right">@d?.Quantity</td>
+                                    <td class="text-right">
+                                        <input type="number" class="form-control form-control-sm text-right" @Disable  value="@d?.QtyReceived" name="qtyReceived">
+                                    </td>
+                                    <td>@d?.Unit</td>
+                                    <td class="text-right">
+                                        <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="unitPrice" value="@d?.Unitprice">
+                                    </td>
+                                    <td class="text-right">
+                                        <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="amount" value="@d?.Amount">
+                                    </td>
+                                    <td class="text-right">
+                                        <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="vatAmount" value="@d?.VatAmount">
+                                    </td>
+                                    <td class="text-right">@d.ClaimRateID</td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" name="lotNo" @Disable  value="@d?.LotNo">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control DateInput form-control-sm DateInput" @Disable  name="expireDate" placeholder="DD/MM/YYYY" id="@d?.CodeID" autocomplete="off" value="@d?.ExpireDateTH">
+                                    </td>
+                                    <td>@d?.Remark</td>
+                                </tr>
+                            }
+                        }
+
+
+                    </tbody>
+                </table>
+            </div>
+            @if (Model?.SYS_Status != null && Model?.SYS_Status != "P01" && Model?.SYS_Status != "C01")
+            {
+                <!-- ตรวจสอบใบรับของ -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">ตรวจสอบใบรับของ</h3>
+                    </div>
+                    <div class="card-body" id="couseApprove1">
+
+                        <!-- สถานะการอนุมัติ -->
+                        <div class="mb-3 row">
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">สถานะ:</label>
+                            <div class="col-md-10 col-12">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" disabled="@(approve1)" name="Approve1Status" id="approve1" value="Y"
+                                           @(Model?.Approve1Status == "Y" ? "checked" : "")>
+                                    <label class="form-check-label text-success fw-bold" for="approve1">อนุมัติ</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" disabled="@(approve1)"  name="Approve1Status" id="reject1" value="N"
+                                           @(Model?.Approve1Status == "N" ? "checked" : "")>
+                                    <label class="form-check-label text-danger fw-bold" for="reject1">ไม่อนุมัติ</label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- หมายเหตุ -->
+                        <div class="mb-3 row">
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">หมายเหตุ</label>
+                            <div class="col-md-10 col-12">
+                                <textarea class="form-control" disabled="@(Model?.SYS_Status != "P02" && Model?.SYS_Status != null ? true : false)" asp-for="@Model.Approve1Remark" id="Approve1Remark" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ผู้อนุมัติและวันที่ -->
+                        <div class="mb-3 row">
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">ผู้อนุมัติ:</label>
+                            <div class="col-md-4 col-12 col-form-label mb-2 mb-md-0">@Model?.Approve1Name</div>
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่:</label>
+                            <div class="col-md-4 col-12 col-form-label">@Model?.Approve1DateTH</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+
+            <!-- Buttons -->
+            <div class="row mb-4 mt-4">
+                <div class="col-12 d-flex justify-content-center">
+                    <div class="btn-list">
+                        @if ((Model?.SYS_Status == "P02" && ViewBag.approve1 == true))
+                        {
+                            <button type="button" class="btn btn-success" onclick="Approve('@Model?.RunningID','@Model?.SYS_Status')">
+                                <i class="ti ti-device-floppy me-1"></i> บันทึก
+                            </button>
+                        }
+                        else if ((Model?.SYS_Status == "P01" || string.IsNullOrEmpty(Model?.SYS_Status)) && ViewBag.Edit == true)
+                        {
+                            <button type="button" class="btn btn-success" onclick="Save('N');">
+                                <i class="ti ti-device-floppy me-1"></i> บันทึก
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="Save('Y');">
+                                <i class="ti ti-send me-1"></i> บันทึกและส่ง
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="Cancel()">
+                                <i class="ti ti-trash"></i> ยกเลิก
+                            </button>
+
+                        }
+
+                        @{
+                            string closeUrl;
+
+                            if (Search?.statusPage == "F02")
+                            {
+                                closeUrl = Url.Action("ListAs400", "ReceivingEq", new { statusPage = "F02" });
+                            }
+                            else
+                            {
+                                var status = string.IsNullOrEmpty(Model?.SYS_Status)
+                                             ? "P01"
+                                             : (Search?.statusPage == "P01"
+                                                ? Search?.statusPage
+                                                : (string.IsNullOrEmpty(Search?.statusPage) ? Model?.SYS_Status : Search?.statusPage));
+
+                                closeUrl = Url.Action("List", "ReceivingEq", new { statusPage = status });
+                            }
+                        }
+                        <a href="@closeUrl" class="btn btn-outline-danger btn-md waves-effect waves-light" role="button">ปิด หน้านี้</a>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Vendor Search Modal -->
+<div class="modal modal-blur fade" id="modalVendorSearch" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ค้นหา Vendor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Input Rows -->
+                <div class="row mb-3 align-items-center">
+                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">Vendor No./Name</label>
+                    <div class="col-md-4 col-12 mb-2 mb-md-0">
+                        <input type="text" class="form-control" name="VendorSearchText" id="VendorSearchText" autocomplete="off">
+                    </div>
+
+                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่รับของ</label>
+                    <div class="col-md-4 col-12">
+                        <input type="text" class="form-control DateInput" name="ReceiveDateSearch" placeholder="DD/MM/YYYY" autocomplete="off">
+                    </div>
+                </div>
+
+                <div class="row mb-3 align-items-center">
+                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่เขียนใบขอซื้อ</label>
+                    <div class="col-md-4 col-12 mb-2 mb-md-0">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                            <input type="text" class="form-control DateInput" name="RequestDateStart" placeholder="DD/MM/YYYY" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-12 mb-2 mb-md-0">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                            <input type="text" class="form-control DateInput" name="RequestDateEnd" placeholder="DD/MM/YYYY" autocomplete="off">
+                        </div>
+                    </div>
+
+                    <div class="col-md-2 col-12 text-center mt-2 mt-md-0">
+                        <button type="button" class="btn btn-info w-100" id="btnSearchVendor" onclick="SearchItem()">
+                            <i class="ti ti-search"></i> ค้นหา
+                        </button>
+                        <button type="button" class="btn btn-danger w-100 mt-2" data-bs-dismiss="modal">
+                            <i class="ti ti-x"></i> ปิด
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vendor Table -->
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover text-center" id="vendorTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>เลือก</th>
+                                <th>เลขที่ใบขอซื้อ</th>
+                                <th>แผนกที่เขียนใบขอซื้อ</th>
+                                <th>Vendor No.</th>
+                                <th>Vendor Name</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section scripts {
+    <script src="~/dist/libs/litepicker/dist/litepicker.js"></script>
+    <script>
+
+       
+        function Approve(id,sys){ 
+                let status = $("input[name='Approve1Status']:checked").val();
+                let remark = $("#Approve1Remark").val();
+                let runningId = id; // สมมติว่า id อยู่ใน span หรือ hidden input 
+                if (!status) {
+                    showWarning("กรุณาเลือกสถานะการอนุมัติ");
+                    return;
+                } 
+                $.ajax({
+                    url: '@Url.Action("Approve", "ReceivingEq")',
+                    type: "POST",
+                    data: {
+                        RunningID: runningId,
+                        sys: sys,
+                        Approve1Status: status,
+                        Approve1Remark: remark
+                    },
+                    success: function (res) {
+                        if (res.success) { 
+                            var link = '@Url.Action("List", "ReceivingEq", new { statusPage = "P01"  })'; 
+                            showSuccess("บันทึกสำเร็จ", link);
+                        } else {
+                            showWarning("เกิดข้อผิดพลาด: " + res.error);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        showWarning("Error: " + error);
+                    }
+                });
+        };
+   
+
+        function Save(s) {
+            var send = false;
+            if (s == "Y") { send = true; }
+
+            var details = [];
+            $("#tblDetail tbody tr").each(function () {
+                var row = $(this);
+                var detailItem = {
+                    ItemOrder: parseFloat(row.find("td:eq(0)").text()) || 0,
+                    CodeID: row.find("td:eq(1)").text().trim(),
+                    CodeName: row.find("td:eq(2)").text().trim(),
+
+                    Quantity: parseFloat(row.find("td:eq(3)").text()) || 0,
+                    QtyReceived: parseFloat(row.find("input[name='qtyReceived']").val()) || 0,
+
+                    Unit: row.find("td:eq(5)").text().trim(),
+                    UnitPrice: parseFloat(row.find("input[name='unitPrice']").val()) || 0,
+
+                    Amount: parseFloat(row.find("input[name='amount']").val()) || 0,
+                    VatAmount: parseFloat(row.find("input[name='vatAmount']").val()) || 0,
+
+                    ClaimRateID: row.find("td:eq(9)").text().trim(),
+                    LotNo: row.find("input[name='lotNo']").val(),
+                    ExpireDate: parseDate(row.find("input[name='expireDate']").val()), // แปลงเป็น ISO ถ้าต้องการ
+                    Remark: row.find("td:eq(12)").text().trim()
+                };
+                details.push(detailItem);
+            });
+
+            var item = {
+
+                RunningID: $("#RunningID").html(),
+                RequestNo: $("#requestNo").html(),
+                InvoiceNo: $("input[name='InvoiceNo']").val(),
+                InvoiceDate: parseDate($("input[name='InvoiceDate']").val()),
+                TaxInvNo: $("input[name='TaxInvNo']").val(),
+                TaxInvDate: parseDate($("input[name='TaxInvDate']").val()),
+                BranchID: $("input[name='Branch']").val(),
+                TaxIDInv: $("input[name='TaxID']").val(),
+                DepartmentID: $("#departmentID").val(),
+                SYS_Status: $("#SYS_Status").val(),
+                VendorID: $("#vendorID").val(),
+                VendorName: $("#vendorName").html(),
+                ReceivingType: $("#ReceivingType").val(),
+                ReceivingDate: parseDate($("input[name='ReceiveDate']").val()),
+                HR_PR_EquipmentReceivingDetail: details,
+                send: send,
+            };
+              var url = '@Url.Action("SaveReceive", "ReceivingEq")';
+            // ส่งไป Controller
+            $.ajax({
+                url: url, // เปลี่ยนเป็น action ของคุณ
+                type: 'POST',
+                dataType: "json",
+                data: item,
+                beforeSend: function () {
+                    ShowLoading();
+                },
+                success: function (res) {
+                      if (res.success) {
+                        let link = ""; 
+                        if (send) {
+                            link = '@Url.Action("List", "ReceivingEq", new { statusPage = "P01" })';
+                        } else if ($("#RunningID").html() != "") {
+                            link = window.location.href;
+                        } else {
+                            link = '@Url.Action("Detail", "ReceivingEq")' + "?ID=" + res.id;
+                        }
+
+                        showSuccess("บันทึกสำเร็จ", link);
+                    }
+                    ShowLoading(false);
+                },
+                error: function (err) {
+                    showWarning("เกิดข้อผิดพลาดในการบันทึก");
+                    ShowLoading(false);
+                }
+            });
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function selectDetail(btn) {
+            let requestNo = $(btn).data('requestno'); // ดึงค่า data-vendor จากปุ่ม
+            let vendor = $(btn).data('vendor'); // ดึงค่า data-vendor จากปุ่ม
+            let vendorName = $(btn).data('vendorname'); // ดึงค่า data-vendor จากปุ่ม
+            let departmentID = $(btn).data('departmentid'); // ดึงค่า data-vendor จากปุ่ม
+            let departmentName = $(btn).data('departmentname'); // ดึงค่า data-vendor จากปุ่ม
+
+            $("#requestNo").html(requestNo);
+            $("#vendorID").val(vendor);
+            $("#vendorName").html(vendorName);
+            $("#departmentName").html(departmentName);
+            $("#departmentID").val(departmentID);
+
+            console.log(requestNo);
+            var url = '@Url.Action("GetDetail", "ReceivingEq")';
+
+            $.ajax({
+                url: url, // URL ของ Controller Action ที่จะดึงข้อมูล
+                type: 'GET',
+                data: { requestNo: requestNo },
+                success: function (response) {
+                    let tbody = $('#tblDetail tbody');
+                    tbody.empty(); // ล้างข้อมูลเก่า
+
+                                       if (response && response.length > 0) {
+                        $.each(response, function (index, item) {
+                            let row = `
+                                <tr class="text-center">
+                                    <td>${item.itemOrder || ''}</td>
+                                    <td class="text-left">${item.code || ''}</td>
+                                    <td class="text-left">${item.codeName || ''}</td>
+                                    <td class="text-right">${item.quantity || ''}</td>
+                                    <td class="text-right">
+                                        <input type="number" class="form-control form-control-sm text-right"
+                                               name="qtyReceived"  >
+                                    </td>
+                                    <td>${item.unit || ''}</td>
+                                    <td class="text-right">
+                                        <input type="number" step="0.01" class="form-control form-control-sm text-right"
+                                               name="unitPrice" value="${item.unitPrice?.toFixed(2) || '0.00'}">
+                                    </td>
+                                    <td class="text-right">
+                                        <input type="number" step="0.01" class="form-control form-control-sm text-right"
+                                               name="amount" value="${item.amount?.toFixed(2) || '0.00'}">
+                                    </td>
+                                    <td class="text-right">
+                                        <input type="number" step="0.01" class="form-control form-control-sm text-right"
+                                               name="vatAmount" value="${item.vatAmount?.toFixed(2) || '0.00'}">
+                                    </td>
+                                    <td class="text-right">${item.claimRate || ''}</td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm"
+                                               name="lotNo"  >
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control DateInput form-control-sm"
+                                               name="expireDate" placeholder="DD/MM/YYYY" id="${item.requestNo + item.itemOrder}" value="${item.expireDate || ''}">
+                                    </td>
+                                    <td>${item.remark || ''}</td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        });
+                    } else {
+                        tbody.append('<tr><td colspan="13" class="text-center text-muted">ไม่มีข้อมูล</td></tr>');
+                    }
+
+                    $('#modalVendorSearch').modal('hide');
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                    showSuccess('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+                }
+            });
+        }
+
+
+        $(document).ready(function () {
+            const modalElement = document.getElementById('modalVendorSearch');
+            const modalInstance = new bootstrap.Modal(modalElement);
+
+            // เปิด Modal
+            $('#btnOpenModal').click(function () {
+                SearchItem();
+                modalInstance.show();
+            });
+
+            // เลือก Vendor แล้วปิด modal
+            $(".btnSelectVendor").on("click", function () {
+                var vendorNo = $(this).data("vendor");
+                $("#VendorNo").val(vendorNo);
+
+                // ปิด Modal
+                var modal = bootstrap.Modal.getInstance(document.getElementById("modalVendorSearch"));
+                modal.hide();
+            });
+        });
+
+    </script>
+
+
+    <script>
+        document.body.addEventListener('focusin', function (e) {
+            if (e.target.classList.contains('DateInput') && !e.target.dataset.hasLitepicker) {
+                const picker = new Litepicker({
+                    element: e.target,
+                    format: 'DD/MM/YYYY',
+                    lang: 'th',
+                    autoApply: true,
+                    singleMode: true, // สำคัญ ให้เลือกแค่ 1 วัน
+                    dropdowns: {
+                        minYear: 2000,
+                        maxYear: new Date().getFullYear() + 5,
+                        months: true,
+                        years: true
+                    }
+                });
+
+                // Update value ของ input เวลาผู้ใช้เลือก
+                picker.on('selected', function (date1, date2) {
+                    e.target.value = date1.format('DD/MM/YYYY');
+                });
+
+                e.target.dataset.hasLitepicker = 'true';
+            }
+        });
+
+
+        function SearchItem() {
+
+                 var url = '@Url.Action("FindePrItem", "ReceivingEq")';
+                 var data = {
+                     'critiria': $("#VendorSearchText").val(),
+                 };
+                  $("#vendorTable > tbody").empty();
+                  $.ajax({
+                         type: "GET",
+                         url: url,
+                         data: data,
+                          dataType: "json",
+                         beforeSend: function() {
+                                 ShowLoading();
+                         },
+                        success: function (data) {
+                                console.log(data);
+                                 var newRow = '';
+                                 var chk = '';
+                                 if (data.length != 0) {
+                                     $.each(data, function (index, element) {
+
+
+
+                                         chk = ' <button type="button" data-requestNo="' + element.requestNo + '"   data-departmentName="' + element.departmentID + '-' + element.departmentName + '"   data-departmentID="' + element.departmentID + '"  data-vendorName="' + element.shopName + '"  data-vendor="' + element.shopID + '"  class="btn btn-sm btn-success btnSelectVendor" id="' + element.requestNo + '" onclick="selectDetail(this);">เลือก</button>';
+
+                                                 newRow = '<tr>';
+                                                 newRow += '<td class="text-center">' + chk + '</td>';
+                                                 newRow += '<td class="text-center">' + element.requestNo + '</td>';
+                                                 newRow += '<td  class="text-start">' + element.departmentID + '-' + element.departmentName + '</td>';
+                                         newRow += '<td  class="text-start">' + element.shopID + '</td>';
+                                         newRow += '<td  class="text-start">' + element.shopName + '</td>';
+                                                 newRow += '</tr>';
+                                         $('#vendorTable > tbody').append(newRow);
+                                         });
+
+                                 }
+                         },
+                         complete: function() {
+                                 ShowLoading(false);
+                         },
+                         error: function(err) {}
+                 });
+        }
+    </script>
+}

@@ -1,0 +1,471 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Threading.Tasks;
+using GFPT.Extension.Utility;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Receiving.Data;
+using Receiving.Models;
+using Template_Tabler;
+
+namespace Receiving.Controllers
+{
+    public class ReceivingEqController : Controller
+    {
+        private IWrapper _repo;
+        private string host;
+        private readonly IHttpContextAccessor _httpContext;
+        private readonly V_SYS_USER user;
+        private readonly IEnumerable<V_SYS_USER_ROLE_PRIVILEGE> userPrivilege;
+        public ReceivingEqController(IWrapper repo, IHttpContextAccessor httpContext)
+        {
+            _repo = repo;
+            _httpContext = httpContext;
+            var currentUser = _httpContext.HttpContext.User.Identity.Name.NoDomainName();
+            user = _repo.SysUser.FindByCondition(x => x.UserLogin == currentUser).SingleOrDefault();
+            userPrivilege = _repo.UserPrivilege.FindByCondition(x => x.UserLogin == currentUser && x.ProgramID == UtilityHelper.ProgramId);
+            host = $"{httpContext.HttpContext.Request.Scheme}://{httpContext.HttpContext.Request.Host.ToUriComponent()}{httpContext.HttpContext.Request.PathBase.ToString()}";
+        }
+        public override void OnActionExecuting(ActionExecutingContext context)
+        {
+            base.OnActionExecuting(context);
+            var result = _repo.SysDocProgram.FindByCondition(l => l.ProgramID == UtilityHelper.ProgramId);
+            ViewData["Permiss"] = result.SingleOrDefault(l => l.DocType == 0)?.DocLink + "&ProgramID=" + UtilityHelper.ProgramId;
+            ViewData["Doc"] = result.SingleOrDefault(l => l.DocType == 1)?.DocLink + "&ProgramID=" + UtilityHelper.ProgramId;
+            ViewData["Manual"] = result.SingleOrDefault(l => l.DocType == 2)?.DocLink + "&ProgramID=" + UtilityHelper.ProgramId;
+            if (context.Controller is Controller controller)
+            {
+                controller.ViewBag.userLogin = "ไม่พบชื่อผู้ใช้งาน";
+
+                if (user != null)
+                {
+                    if (!string.IsNullOrEmpty(user.UserLogin))
+                        controller.ViewBag.userLogin = user.UserLogin;
+                }
+                controller.ViewBag.Host = host.GetHost();
+                controller.ViewBag.userPrivilege = userPrivilege;
+                //controller.ViewBag.Guide = linkDocument.SingleOrDefault(x => x.DocType == 2)?.FullLink;
+                //controller.ViewBag.Permissions = linkDocument.SingleOrDefault(x => x.DocType == 0)?.FullLink;
+                //controller.ViewBag.Presentation = linkDocument.SingleOrDefault(x => x.DocType == 1)?.FullLink;
+            }
+            ViewBag.URL = host;
+            ViewBag.HostReport = $"{host}Report";
+        }
+
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult FindePrItem(string critiria)
+        {
+
+            var result = _repo.VWH
+                        .FindByCondition(e =>
+                            string.IsNullOrEmpty(critiria) ||
+                            e.ShopName.StartsWith(critiria) ||
+                            e.ShopID.StartsWith(critiria) ||
+                            e.CodeName.StartsWith(critiria)
+                        )
+                        .GroupBy(e => new
+                        {
+                            e.RequestNo,
+                            e.DepartmentID,
+                            e.ShopID,
+                            e.ShopName,
+                            e.DepartmentName
+                        })
+                        .Select(g => new
+                        {
+                            RequestNo = g.Key.RequestNo,
+                            DepartmentID = g.Key.DepartmentID,
+                            ShopID = g.Key.ShopID,
+                            ShopName = g.Key.ShopName,
+                            DepartmentName = g.Key.DepartmentName,
+                            // ถ้าต้องการรวมข้อมูลในกลุ่ม เช่น นับจำนวน
+                            Count = g.Count()
+                            // หรือรวมค่าอื่น ๆ เช่น TotalAmount = g.Sum(x => x.Amount)
+                        })
+                        .OrderBy(d => d.DepartmentID)
+                        .ToList();
+
+
+            return Json(result);
+
+        }
+
+          public IActionResult GetDetail(string requestNo)
+        {
+ 
+            var result = _repo.VWH.FindByCondition(e => 
+                                                           (e.RequestNo.Equals(requestNo))  
+
+                                                         ).ToList(); 
+            return Json(result);
+
+        }
+
+        public IActionResult ListAs400(Search Search)
+        {
+            ViewData["Title"] = "อัปเดทเข้าระบบ AS400";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort;
+            if(!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
+            if (!string.IsNullOrEmpty(Search.receiveDateEnd)) { Search.DateStartTo = Search.receiveDateEnd.stringToDateTime(); }
+            var ListItemss = _repo.ReceivingHeader.GetDataList(Search);
+            var _TypeID =
+                    new List<SelectListItem>
+                    {
+                            new SelectListItem {Text = "รับอะไหล่", Value = "001"},
+                            new SelectListItem {Text = "รับบรรจุภัณฑ์", Value = "002"}, 
+                    };
+            ViewBag.TypeID = new SelectList(_TypeID, "Value", "Text", Search?.TypeID); 
+            return View(ListItemss);
+        }
+        public IActionResult ListInventory(Search Search)
+        {
+            ViewData["Title"] = "จัดเก็บสินค้า";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort;
+            if(!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
+            if (!string.IsNullOrEmpty(Search.receiveDateEnd)) { Search.DateStartTo = Search.receiveDateEnd.stringToDateTime(); }
+            var ListItemss = _repo.Inventory.GetDataList(Search);
+            var _TypeID =
+                    new List<SelectListItem>
+                    {
+                            new SelectListItem {Text = "รับอะไหล่", Value = "001"},
+                            new SelectListItem {Text = "รับบรรจุภัณฑ์", Value = "002"}, 
+                    };
+            ViewBag.TypeID = new SelectList(_TypeID, "Value", "Text", Search?.TypeID);
+
+            return View(ListItemss);
+        }
+        public IActionResult List(Search Search)
+        {
+            ViewData["Title"] = "ระบบ ใบรับของ";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort;
+            if(!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
+            if (!string.IsNullOrEmpty(Search.receiveDateEnd)) { Search.DateStartTo = Search.receiveDateEnd.stringToDateTime(); }
+            var ListItemss = _repo.ReceivingHeader.GetDataList(Search);
+            var _TypeID =
+                    new List<SelectListItem>
+                    {
+                            new SelectListItem {Text = "รับอะไหล่", Value = "001"},
+                            new SelectListItem {Text = "รับบรรจุภัณฑ์", Value = "002"}, 
+                    };
+            ViewBag.TypeID = new SelectList(_TypeID, "Value", "Text", Search?.TypeID);
+
+            return View(ListItemss);
+        }
+        public IActionResult Detail(Search item)
+        {
+            ViewBag.Edit = true;
+            ViewBag.approve1 = true;
+            var result = _repo.ReceivingHeader.FindSingle(l => l.RunningID == item.ID, l => l.Include(x => x.HR_PR_EquipmentReceivingDetail).Include(x => x.V_HR_MT_Department)) ?? null;
+            ViewBag.Search = item;
+            return View(result);
+        }
+        [HttpPost]
+        public IActionResult Approve(string RunningID, string Approve1Status, string Approve1Remark, string sys)
+        {
+            try
+            {
+                if(sys != "P02")
+                {
+                    return Json(new { success = false, error = "ไม่สามารถทำรายการได้ เนื่องจากสถานะ ของ ใบนี้ เปลี่ยนไป แล้ว" });
+                }
+                var header = _repo.ReceivingHeader.FindSingle(x => x.RunningID == RunningID,l=> l.Include(f=>f.HR_PR_EquipmentReceivingDetail));
+                if (header == null)
+                    return Json(new { success = false, error = "ไม่พบข้อมูล" });
+                    header.Approve1Status = Approve1Status;
+                    header.Approve1Remark = Approve1Remark;
+                    header.Approve1Name = user.UserName;
+                    header.Approve1Date = DateTime.Now;
+                    if (Approve1Status == "Y")
+                    {
+                            header.SYS_Status = "F01";
+                            var id = _repo.Inventory.GetRunning();
+                            var invetoryList = new List<HR_PR_EquipmentInventory>();
+                            foreach (var d in header.HR_PR_EquipmentReceivingDetail)
+                            {
+                                string credential = $"{DateTime.Now.Year.ToString("0000")}{DateTime.Now.Month.ToString("00")}{DateTime.Now.Day.ToString("00")}{id.ToString("00")}";
+
+                                    invetoryList.Add(new HR_PR_EquipmentInventory {
+                                        SerialNo = credential,
+                                        ReceivingType = header.ReceivingType,
+                                        CodeID = d.CodeID,
+                                        CodeName = d.CodeName,
+                                        LotNo = d.LotNo,
+                                        QtyReceived = d.QtyReceived,
+                                        ExpireDate = d.ExpireDate,
+                                        LocationID = "",
+                                        RunningID = d.RunningID,
+                                        Unit = d.Unit,
+                                        SYS_Status = "P01",
+                                        EditID = user.UserID,
+                                        EditName = user.UserName,
+                                        EditDate = DateTime.Now,
+
+                                        CreateID = user.UserID,
+                                        CreateName = user.UserName,
+                                        CreateDate = DateTime.Now, 
+                               
+                                    });
+                                         id++;
+                            }
+                           _repo.Inventory.Create(invetoryList);
+                      }
+                    else
+                    {
+                        header.SYS_Status = "P01";
+                        string refidlog = $"{header.RunningID.ToString()}";
+                        var Log = new SYS_RejectLogs(UtilityHelper.ProgramId, refidlog, header.statusPageName, Approve1Remark, user.UserName); 
+                        _repo.RejectLogs.Create(Log);
+                }
+               
+
+                _repo.ReceivingHeader.Update(header);
+                _repo.Save();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+
+        [HttpPost]
+        public IActionResult SendInventory([FromBody] List<string> Ids)
+        {
+            if ( Ids == null || !Ids.Any())
+            {
+                return Json(new { success = false, message = "ไม่มีข้อมูลที่เลือก" });
+            }
+
+            try
+            {
+                foreach (var id in Ids)
+                {
+                    var item = _repo.Inventory.FindSingle(l => l.RunningID == id) ?? null;
+                    if(item != null)
+                    {
+                         item.SYS_Status = "F01";
+                         item.EditID = user.UserID;
+                         item.EditName = user.UserName;
+                         item.EditDate = DateTime.Now;
+                    }
+                }
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+
+        [HttpPost]
+        public IActionResult SaveLocation([FromBody] string locationId)
+        {
+            if (string.IsNullOrEmpty(locationId))
+            {
+                return Json(new { success = false, message = "ข้อมูลไม่ถูกต้อง" });
+            }
+
+            try
+            {
+                // สมมติว่า Save ลง DB
+                // _repo.SaveLocation(model.Id, model.Location);
+
+                return Json(new { success = true, message = "บันทึกเรียบร้อย" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public IActionResult SaveReceive(HR_PR_EquipmentReceivingHeader item, bool send)
+        {
+            if (item == null) return BadRequest();
+              var DataSendMail = new HR_PR_EquipmentReceivingHeader();
+            try
+            {
+                if (string.IsNullOrEmpty(item.RunningID)) // CREATE NEW
+                {
+                    int index = 0;
+                    item.Create(user.UserID, user.UserName, _repo.ReceivingHeader.GetRunning(), send);
+
+                    foreach (var d in item.HR_PR_EquipmentReceivingDetail)
+                    {
+                        d.create(item.RunningID, item.RunningID + index.ToString("00"));
+                        index++;
+                    }
+
+                    _repo.ReceivingHeader.Create(item);
+                    DataSendMail = item;
+                }
+                else // UPDATE EXISTING
+                {
+                    var old = _repo.ReceivingHeader.FindSingle(
+                        l => l.RunningID == item.RunningID,
+                        l => l.Include(f => f.HR_PR_EquipmentReceivingDetail)
+                    );
+
+                    if (old == null)
+                        return Json(new { success = false, error = "ไม่พบข้อมูลที่ต้องการแก้ไข" });
+
+                    // ---- Step D: Clear Detail เก่า ----
+                    _repo.ReceivingDetail.DeleteByCondition(l => l.RunningID == item.RunningID);
+
+                    // ---- Step H: Map Header ----
+                    old.Edit(user.UserID, user.UserName, item, send);
+
+                    // ---- Step H: Map Detail ใหม่ ----
+                    int index = 0;
+                    foreach (var d in item.HR_PR_EquipmentReceivingDetail)
+                    {
+                        d.create(old.RunningID, old.RunningID + index.ToString("00"));
+                        old.HR_PR_EquipmentReceivingDetail.Add(d);
+                        index++;
+                    }
+
+                    // ---- Step W: Update ----
+                    _repo.ReceivingHeader.Update(old);
+                    DataSendMail = old;
+                }
+
+                // Save to Database
+                _repo.Save();
+                if (send)
+                { 
+                    if (DataSendMail.SYS_Status == "P02")
+                    {
+                        var rgApprove = Helper.RightCode.Approve1;
+                        var controllername = "Detail";
+                        var link = Url.Action(controllername, "ReceivingEq", new { RunningID = item.RunningID }, Request.Scheme);
+                        string detail = "รายการ ตรวจสอบใบรับของ  " + DataSendMail.statusPageName + item.RunningID;
+                        if (!string.IsNullOrEmpty(DataSendMail.DepartmentID))
+                        {
+                            String DepartmentSendMail = ((DataSendMail.DepartmentID.Length < 4 ? DataSendMail.DepartmentID : DataSendMail.DepartmentID.Substring(0, 4)));
+
+                            Helper.SendEmail(Helper.Company.GFPT, UtilityHelper.ProgramId, "มีรายการรอ ตรวจสอบใบรับของ", detail, DataSendMail.SYS_Status, rgApprove, DepartmentSendMail, user.UserName, link);
+
+                        }
+                    } 
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, ex = ex.Message });
+            }
+
+            return Json(new { success = true, id = item.RunningID });
+        }
+
+        public IActionResult Cancel(string id, string remark)
+        {
+            try
+            {
+                var item = _repo.ReceivingHeader.FindByCondition(l => l.RunningID == id).SingleOrDefault() ?? null;
+                if (item == null) { return Json(new { success = false, ex = "ไม่พบข้อมูล" }); }
+                item.Cancel(user.UserID, user.UserName);
+                _repo.ReceivingHeader.Update(item);
+                _repo.Save();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, ex = ex.Message });
+            }
+        }
+
+
+        #region Master 
+        public IActionResult ListMasterZone(Search Search)
+        {
+            ViewData["Title"] = "Zone";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort; 
+            var ListItemss = _repo.EquipmentZone.GetDataList(Search);
+            
+            var _typestatus =
+                   new List<SelectListItem>
+                   {
+                            new SelectListItem {Text = "ใช้งาน", Value = "1"},
+                            new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
+                   };
+            ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search._typestatus);
+            return View(ListItemss);
+        }
+        public IActionResult CreateZone(Search Search)
+        {
+            var _typestatus =
+                      new List<SelectListItem>
+                      {
+                            new SelectListItem {Text = "ใช้งาน", Value = "1"},
+                            new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
+                      };
+            ViewData["Title"] = "Zone";
+            ViewBag.Search = Search; 
+            var ListItemss = _repo.EquipmentZone.FindSingle(l => l.ZoneID == Search.ID , g=>g.Include(f=>f.HR_PR_EquipmentLocation)) ?? null ;
+            ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", ListItemss?.UsageStatus == true ? "1" : "0");
+
+            return View(ListItemss);
+        }
+        public IActionResult SaveZone(HR_PR_EquipmentZone item)
+        {
+            if (item == null) return BadRequest();
+            var DataSendMail = new HR_PR_EquipmentReceivingHeader();
+            try
+            {
+                var old = _repo.EquipmentZone.FindSingle(
+                        l => l.ZoneID == item.ZoneID,
+                        l => l.Include(f => f.HR_PR_EquipmentLocation)
+                    );
+                if (old == null) // CREATE NEW
+                { 
+                    item.Create(user.UserID, user.UserName);  
+                    _repo.EquipmentZone.Create(item); 
+                }
+                else // UPDATE EXISTING
+                { 
+
+                    if (old == null)
+                        return Json(new { success = false, error = "ไม่พบข้อมูลที่ต้องการแก้ไข" }); 
+                    // ---- Step H: Map Header ----
+                    old.Edit(user.UserID, user.UserName, item);
+ 
+                    // ---- Step W: Update ----
+                    _repo.EquipmentZone.Update(old); 
+                } 
+                _repo.Save();
+                 
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, ex = ex.Message });
+            }
+
+            return Json(new { success = true, id = item.ZoneID });
+        }
+
+        #endregion
+
+    }
+}

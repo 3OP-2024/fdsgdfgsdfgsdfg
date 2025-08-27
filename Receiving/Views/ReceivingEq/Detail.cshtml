@@ -200,7 +200,10 @@
                 <div class="col-md-2 col-12">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ti ti-building-bank"></i></span>
-                        <input type="text" class="form-control" name="Branch" value="@Model?.BranchID"  @Disable autocomplete="off">
+                        @*<input type="text" class="form-control" name="Branch" value="@Model?.BranchID" @Disable autocomplete="off">*@
+                         <select id="Branch" name="Branch" class="form-select" asp-items="@ViewBag.Branch"> 
+                        </select>
+                        
                     </div>
                 </div>
             </div>
@@ -248,7 +251,7 @@
                                     <td class="text-right">
                                         <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="vatAmount" value="@d?.VatAmount">
                                     </td>
-                                    <td class="text-right">@d.ClaimRateID</td>
+                                    <td class="text-right">@d?.HR_PR_EquipmentClaimRate?.ClaimRateNumber</td>
                                     <td>
                                         <input type="text" class="form-control form-control-sm" name="lotNo" @Disable  value="@d?.LotNo">
                                     </td>
@@ -256,6 +259,7 @@
                                         <input type="text" class="form-control DateInput form-control-sm DateInput" @Disable  name="expireDate" placeholder="DD/MM/YYYY" id="@d?.CodeID" autocomplete="off" value="@d?.ExpireDateTH">
                                     </td>
                                     <td>@d?.Remark</td>
+                                    <td hidden>@d?.ClaimRateID</td>
                                 </tr>
                             }
                         }
@@ -497,10 +501,11 @@
                     Amount: parseFloat(row.find("input[name='amount']").val()) || 0,
                     VatAmount: parseFloat(row.find("input[name='vatAmount']").val()) || 0,
 
-                    ClaimRateID: row.find("td:eq(9)").text().trim(),
+                   /// ClaimRateID: row.find("td:eq(9)").text().trim(),
                     LotNo: row.find("input[name='lotNo']").val(),
                     ExpireDate: parseDate(row.find("input[name='expireDate']").val()), // แปลงเป็น ISO ถ้าต้องการ
-                    Remark: row.find("td:eq(12)").text().trim()
+                    Remark: row.find("td:eq(12)").text().trim(),
+                    ClaimRateID: row.find("td:eq(13)").text().trim()
                 };
                 details.push(detailItem);
             });
@@ -513,7 +518,7 @@
                 InvoiceDate: parseDate($("input[name='InvoiceDate']").val()),
                 TaxInvNo: $("input[name='TaxInvNo']").val(),
                 TaxInvDate: parseDate($("input[name='TaxInvDate']").val()),
-                BranchID: $("input[name='Branch']").val(),
+                BranchID: $("#Branch").val(),
                 TaxIDInv: $("input[name='TaxID']").val(),
                 DepartmentID: $("#departmentID").val(),
                 SYS_Status: $("#SYS_Status").val(),
@@ -554,21 +559,7 @@
                     ShowLoading(false);
                 }
             });
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        } 
 
 
 
@@ -621,7 +612,7 @@
                                         <input type="number" step="0.01" class="form-control form-control-sm text-right"
                                                name="vatAmount" value="${item.vatAmount?.toFixed(2) || '0.00'}">
                                     </td>
-                                    <td class="text-right">${item.claimRate || ''}</td>
+                                    <td class="text-right">${item.claimRateNumber || ''}</td>
                                     <td>
                                         <input type="text" class="form-control form-control-sm"
                                                name="lotNo"  >
@@ -631,6 +622,7 @@
                                                name="expireDate" placeholder="DD/MM/YYYY" id="${item.requestNo + item.itemOrder}" value="${item.expireDate || ''}">
                                     </td>
                                     <td>${item.remark || ''}</td>
+                                    <td hidden>${item.claimRateID || ''}</td>
                                 </tr>
                             `;
                             tbody.append(row);

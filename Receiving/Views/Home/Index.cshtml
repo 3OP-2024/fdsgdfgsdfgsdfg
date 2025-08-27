@@ -63,10 +63,10 @@
                         <a asp-controller="ReceivingEq" asp-action="ListMasterZone" asp-route-statusPage="M01" class="list-group-item  ">
                             <i class="ti ti-map-pin me-2"></i> Zone & Location
                         </a>
-                        <a asp-controller="Sticker" asp-action="ListMasterStickerType" asp-route-statusPage="M01" class="list-group-item disabled-link">
+                        <a asp-controller="ReceivingEq" asp-action="ListMasterClaimRate" asp-route-statusPage="M02" class="list-group-item  ">
                             <i class="ti ti-receipt-tax me-2"></i> ข้อมูล VAT Claim Rate
                         </a>
-                        <a asp-controller="Sticker" asp-action="ListMasterStickerType" asp-route-statusPage="M01" class="list-group-item disabled-link">
+                        <a asp-controller="ReceivingEq" asp-action="ListMasterBranch" asp-route-statusPage="M03" class="list-group-item  ">
                             <i class="ti ti-building-store me-2"></i> ข้อมูล Branch
                         </a>
                     </div>
@@ -82,7 +82,10 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a asp-controller="Sticker" asp-action="ListMasterStickerType" asp-route-statusPage="M01" class="list-group-item disabled-link">
+                        <a asp-controller="ReceivingEq" asp-action="ReportCardList" asp-route-statusPage="M01" class="list-group-item ">
+                            <i class="ti ti-report-analytics me-2"></i> รายงานสินค้าคงคลัง
+                        </a> 
+                        <a asp-controller="ReceivingEq" asp-action="ReportCard" asp-route-statusPage="M01" class="list-group-item ">
                             <i class="ti ti-report-analytics me-2"></i> รายงานสินค้าคงคลัง
                         </a>
                     </div>

@@ -56,7 +56,7 @@ namespace Receiving.Models
         public string TaxIDInv { get; set; }
 
        
-        public int BranchID { get; set; }
+        public string BranchID { get; set; }
  
         public DateTime? TaxInvDate { get; set; }
         public string TaxInvDateTH
@@ -277,6 +277,7 @@ namespace Receiving.Models
 
         [ForeignKey("DepartmentID")]
         public virtual V_HR_MT_Department V_HR_MT_Department { get; set; }
+       
         public string DepartmentID4Name
         {
             get

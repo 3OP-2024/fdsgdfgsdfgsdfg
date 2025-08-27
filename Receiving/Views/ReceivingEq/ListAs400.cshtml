@@ -223,7 +223,13 @@
 
     <script>
        
-
+        function SearchByPage(pager) {
+           let critiria = $("#critiria").val();
+             let usestatus = $("#usestatus").val();
+             var url = '@Url.Action("ListAs400", "ReceivingEq")?critiria=' + critiria + "&usestatus=" + usestatus + "&page=" + pager ;
+             ShowLoading();
+             window.location.replace(url);
+        }
         $("#formSearch").on("submit", function () {
             ShowLoading();
         });

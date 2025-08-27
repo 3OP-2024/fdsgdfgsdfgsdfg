@@ -6,7 +6,9 @@ namespace Receiving.Data
 {
     public interface IWrapper
     {
-
+         ILocationRepository Location { get; } 
+        IClaimRateRepository ClaimRate { get; }
+        IBranchRepository Branch { get; }
 
         IEquipmentZoneRepository EquipmentZone { get; }
         IStockCardRepository StockCard { get; }
@@ -17,6 +19,7 @@ namespace Receiving.Data
         IVWHRepository VWH { get; }
 
         IReceivingHeaderRepository ReceivingHeader { get; }
+        IVInventoryRepository VInventory { get; }
 
 
 

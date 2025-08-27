@@ -55,8 +55,9 @@ namespace Receiving.Models
 
         [StringLength(200)]
         public string Remark { get; set; }
-        
-       public string ExpireDateTH
+        [ForeignKey("ClaimRateID")]
+        public virtual HR_PR_EquipmentClaimRate HR_PR_EquipmentClaimRate { get; set; }
+        public string ExpireDateTH
         {
             get
             {

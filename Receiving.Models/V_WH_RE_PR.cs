@@ -16,6 +16,10 @@ namespace Receiving.Models
 
    
         public string DepartmentID { get; set; }
+        [NotMapped]
+        public string ClaimRateID { get; set; }
+        [NotMapped]
+        public int? ClaimRateNumber { get; set; }
 
         [StringLength(60)]
         public string DepartmentName { get; set; }

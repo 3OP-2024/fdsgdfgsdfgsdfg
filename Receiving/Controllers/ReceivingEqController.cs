@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using GFPT.Extension.Utility;
+using GFPT.Extension.Utility.Std;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -105,7 +106,13 @@ namespace Receiving.Controllers
             var result = _repo.VWH.FindByCondition(e => 
                                                            (e.RequestNo.Equals(requestNo))  
 
-                                                         ).ToList(); 
+                                                         ).ToList();
+            result.ToList().ForEach(l => {
+                    l.ClaimRateNumber = _repo.ClaimRate.FindSingle(g => g.DepartmentID == l.DepartmentID)?.ClaimRateNumber;
+                    l.ClaimRateID = _repo.ClaimRate.FindSingle(g => g.DepartmentID == l.DepartmentID)?.ClaimRateID;
+
+            });
+
             return Json(result);
 
         }
@@ -170,8 +177,13 @@ namespace Receiving.Controllers
         {
             ViewBag.Edit = true;
             ViewBag.approve1 = true;
-            var result = _repo.ReceivingHeader.FindSingle(l => l.RunningID == item.ID, l => l.Include(x => x.HR_PR_EquipmentReceivingDetail).Include(x => x.V_HR_MT_Department)) ?? null;
-            ViewBag.Search = item;
+            var result = _repo.ReceivingHeader.FindSingle(l => l.RunningID == item.ID, 
+                l => l.Include(x => x.HR_PR_EquipmentReceivingDetail).ThenInclude(c => (c as HR_PR_EquipmentReceivingDetail).HR_PR_EquipmentClaimRate)
+                      .Include(x => x.V_HR_MT_Department)) ?? null;
+            ViewBag.Search = item; 
+             ViewBag.Branch = new SelectList(_repo.Branch.FindByCondition(l=>l.UsageStatus == true), "BranchID", "BranchIDAndName", result?.BranchID);
+             ViewBag.ClaimRate = new SelectList(_repo.ClaimRate.FindByCondition(l=>l.UsageStatus == true), "ClaimRateID", "ClaimRateNumber");
+
             return View(result);
         }
         [HttpPost]
@@ -257,15 +269,17 @@ namespace Receiving.Controllers
             {
                 foreach (var id in Ids)
                 {
-                    var item = _repo.Inventory.FindSingle(l => l.RunningID == id) ?? null;
+                    var item = _repo.Inventory.FindSingle(l => l.SerialNo == id) ?? null;
                     if(item != null)
                     {
                          item.SYS_Status = "F01";
                          item.EditID = user.UserID;
                          item.EditName = user.UserName;
                          item.EditDate = DateTime.Now;
+                        _repo.Inventory.Update(item);
                     }
                 }
+                _repo.Save();
 
                 return Json(new { success = true });
             }
@@ -275,21 +289,48 @@ namespace Receiving.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult SearchLocation(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return Json(new List<object>()); // ส่ง array ว่าง
 
+            var locations = _repo.Location.FindByCondition(f=>f.LocationID.Contains(keyword) || f.LocationName.Contains(keyword) || string.IsNullOrEmpty(keyword)  ) 
+                .Select(l => new
+                {
+                    LocationID = l.LocationID,
+                    Name = l.LocationName ?? ""
+                })
+                .Take(10) // จำกัดผลลัพธ์
+                .ToList();
+
+            return Json(locations);
+        }
 
         [HttpPost]
-        public IActionResult SaveLocation([FromBody] string locationId)
-        {
-            if (string.IsNullOrEmpty(locationId))
+        public IActionResult SaveLocation( string locationId, string serialNo)
+        { 
+
+            if (string.IsNullOrEmpty(locationId) && string.IsNullOrEmpty(serialNo))
             {
                 return Json(new { success = false, message = "ข้อมูลไม่ถูกต้อง" });
             }
 
             try
             {
-                // สมมติว่า Save ลง DB
-                // _repo.SaveLocation(model.Id, model.Location);
+                var old = _repo.Inventory.FindSingle(l => l.SerialNo == serialNo) ?? null;
+                if(old != null)
+                {
+                    old.SYS_Status = "P02";
+                    old.LocationID = locationId;
+                    old.EditDate = DateTime.Now;
+                    old.EditID = user.UserID;
+                    old.EditName = user.UserName;
+                }
+              
 
+                _repo.Inventory.Update(old);
+                _repo.Save();
                 return Json(new { success = true, message = "บันทึกเรียบร้อย" });
             }
             catch (Exception ex)
@@ -398,7 +439,7 @@ namespace Receiving.Controllers
         #region Master 
         public IActionResult ListMasterZone(Search Search)
         {
-            ViewData["Title"] = "Zone";
+            ViewData["Title"] = " Zone & Location";
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
             ViewBag.CurrentSort = Search.currentSort; 
@@ -410,7 +451,7 @@ namespace Receiving.Controllers
                             new SelectListItem {Text = "ใช้งาน", Value = "1"},
                             new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
                    };
-            ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search._typestatus);
+            ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search.TypeID);
             return View(ListItemss);
         }
         public IActionResult CreateZone(Search Search)
@@ -465,7 +506,170 @@ namespace Receiving.Controllers
             return Json(new { success = true, id = item.ZoneID });
         }
 
+        public IActionResult ListMasterBranch(Search Search)
+        {
+            ViewData["Title"] = "ข้อมูล Branch";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort;
+            var ListItemss = _repo.Branch.GetDataList(Search);
+
+            var _typestatus =
+                   new List<SelectListItem>
+                   {
+                            new SelectListItem {Text = "ใช้งาน", Value = "1"},
+                            new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
+                   };
+            ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search.TypeID);
+            return View(ListItemss);
+        }
+
+        [HttpPost]  
+        public IActionResult SaveBranch(HR_PR_EquipmentBranch item, string status)
+        {
+            try
+            {
+                //if (string.IsNullOrEmpty(item?.BranchID)) { throw new Exception("ไม่พบข้อมูลที่จะแก้ไข"); }
+
+                if (status == "A")
+                {
+                    var RunningID = _repo.Branch.GetRunning();
+                    var RunningIDStr = "B" + RunningID.ToString("0000");
+                    item.BranchID = RunningIDStr; 
+                    item.Add(user.UserID, user.UserName); 
+                    _repo.Branch.Create(item);
+
+                }
+                else if (status == "E")
+                {
+                    var old = _repo.Branch.FindSingle(l => l.BranchID == item.BranchID ) ?? null;
+                    if (old == null) { throw new Exception("ไม่พบข้อมูลที่จะแก้ไข"); } 
+
+                    old.Edit(user.UserID, user.UserName, item); 
+                    _repo.Branch.Update(old);
+                }
+                else
+                {
+                    throw new Exception("ไม่สามารถบันทึกได้");
+                }
+                _repo.Save();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, ex = ex.Message });
+            }
+        }
+        [HttpPost]  
+        public IActionResult SaveClaimRate(HR_PR_EquipmentClaimRate item, string status)
+        {
+            try
+            {
+ 
+                if (status == "A")
+                {
+                    var RunningID = _repo.ClaimRate.GetRunning();
+                    var RunningIDStr = "C" + RunningID.ToString("0000");
+                    item.ClaimRateID = RunningIDStr; 
+                    item.Add(user.UserID, user.UserName); 
+                    _repo.ClaimRate.Create(item);
+
+                }
+                else if (status == "E")
+                {
+                    var old = _repo.ClaimRate.FindSingle(l => l.ClaimRateID == item.ClaimRateID ) ?? null;
+                    if (old == null) { throw new Exception("ไม่พบข้อมูลที่จะแก้ไข"); } 
+
+                    old.Edit(user.UserID, user.UserName, item); 
+                    _repo.ClaimRate.Update(old);
+                }
+                else
+                {
+                    throw new Exception("ไม่สามารถบันทึกได้");
+                }
+                _repo.Save();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, ex = ex.Message });
+            }
+        }
+        public IEnumerable<HR_MT_Department> GetDepartmentByPermissionGetList(List<string> status)
+        {
+            var GroupId = userPrivilege.Where(l => status.Contains(l.SYS_Status)).Select(l => l.GroupDepartment).Distinct().ToList();
+            var DepartmentID = _repo.GroupDepartmentDetail.FindByCondition(e => GroupId.Contains(e.GroupDepID)).Select(l => l.DepartmentID).ToList();
+            var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true && DepartmentID.Any(s => l.DepartmentID.StartsWith(s)));
+            return MTDepartment;
+        }
+
+
+        public IActionResult ListMasterClaimRate(Search Search)
+        {
+            ViewData["Title"] = "ข้อมูล ClaimRate";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort;
+            var ListItemss = _repo.ClaimRate.GetDataList(Search);
+ 
+ 
+            var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true ).ToList();
+
+            ViewBag.DepartmentID = new SelectList(MTDepartment, "DepartmentID", "DepartmentIDAndName", Search?.DepartmentID);
+
+            var _typestatus =
+                   new List<SelectListItem>
+                   {
+                            new SelectListItem {Text = "ใช้งาน", Value = "1"},
+                            new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
+                   };
+            ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search.TypeID);
+            return View(ListItemss);
+        }
+
         #endregion
+
+        public IActionResult ReportCard(Search Search)
+        {
+            ViewData["Title"] = "รายงานสินค้าคงคลัง";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+             ViewBag.CurrentSort = Search.currentSort;
+            //var ListItemss = _repo.ClaimRate.GetDataList(Search);
+
+
+            //var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true).ToList();
+
+            //ViewBag.DepartmentID = new SelectList(MTDepartment, "DepartmentID", "DepartmentIDAndName", Search?.DepartmentID);
+
+            //var _typestatus =
+            //       new List<SelectListItem>
+            //       {
+            //                new SelectListItem {Text = "ใช้งาน", Value = "1"},
+            //                new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
+            //       };
+            //ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search.TypeID);
+            return View();
+        }
+        public IActionResult ReportCardList(Search Search)
+        {
+            ViewData["Title"] = "รายงานสินค้าคงคลัง";
+            ViewBag.Search = Search;
+            Search.page = ((Search.page == 0) ? 1 : Search.page);
+            ViewBag.CurrentSort = Search.currentSort;
+            var ListItemss = _repo.VInventory.GetDataList(Search); 
+
+            var _TypeID =
+                  new List<SelectListItem>
+                  {
+                            new SelectListItem {Text = "รับอะไหล่", Value = "001"},
+                            new SelectListItem {Text = "รับบรรจุภัณฑ์", Value = "002"},
+                  };
+            ViewBag.TypeID = new SelectList(_TypeID, "Value", "Text", Search?.TypeID);
+
+            return View(ListItemss);
+        }
+
 
     }
 }

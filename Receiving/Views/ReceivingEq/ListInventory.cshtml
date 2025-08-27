@@ -258,7 +258,7 @@
                 </div>
 
                 <div id="locationList" class="d-flex flex-wrap gap-2">
-                    <button type="button" class="btn btn-outline-primary" onclick="saveLocationForRow('SERIAL001', 'LOC001')">
+                    @*<button type="button" class="btn btn-outline-primary" onclick="saveLocationForRow('SERIAL001', 'LOC001')">
                         LOC001 - Warehouse A
                     </button>
                     <button type="button" class="btn btn-outline-success" onclick="saveLocationForRow('SERIAL001', 'LOC002')">
@@ -266,16 +266,16 @@
                     </button>
                     <button type="button" class="btn btn-outline-warning" onclick="saveLocationForRow('SERIAL001', 'LOC003')">
                         LOC003 - Warehouse C
-                    </button>
+                    </button>*@
                 </div>
             </div>
 
             <div class="modal-footer">
                 <input type="hidden" id="selectedSerialNo" />
-                <button type="button" class="btn btn-primary" onclick="saveLocation()">
+                @*<button type="button" class="btn btn-primary" onclick="saveLocation()">
                     <i class="ti ti-device-floppy me-1"></i> บันทึก
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </button>*@
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ปิด</button>
 
             </div>
 
@@ -290,81 +290,127 @@
    <script>
        let currentSerialNo = null;
 
-       $('#modalAddLocation').on('show.bs.modal', function (event) {
-           let button = $(event.relatedTarget);
-           currentSerialNo = button.data('serial');
-           $("#selectedSerialNo").val(currentSerialNo);
-       });
+            $(document).ready(function () {
+                // สร้าง instance ของ modal แค่ครั้งเดียว
+                var modalEl = document.getElementById('modalAddLocation');
+                var modalInstance = new bootstrap.Modal(modalEl);
+
+                // ดักทุกปุ่มที่เปิด modal
+                $('button[data-bs-toggle="modal"][data-bs-target="#modalAddLocation"]').on('click', function () {
+                    // เอาค่า Serial จาก data-serial ของปุ่มที่กด
+                    var serialNo = $(this).data('serial');
+
+                    // ใส่ค่า serial เข้า hidden input ใน modal
+                    $('#selectedSerialNo').val(serialNo);
+
+                    // เคลียร์การเลือก Location ก่อนเปิด
+                    $('#locationList button').removeClass('active');
+
+                    // เปิด modal
+                    modalInstance.show();
+                });
+
+                // เคลียร์และซ่อน backdrop เวลา modal ถูกปิด
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    // ลบ class active ของปุ่ม Location
+                    $('#locationList button').removeClass('active');
+
+                    // ป้องกัน backdrop ค้าง
+                    $('.modal-backdrop').remove();
+                });
+            });
+
+
 
        // พิมพ์ค้นหา Location
-       $("#searchLocation").on("input", function () {
-           let query = $(this).val().trim();
-           if (!query) {
-               $("#locationList").html('');
-               return;
-           }
+      $("#searchLocation").on("input", function () {
+                let query = $(this).val().trim();
+                if (!query) {
+                    $("#locationList").html('');
+                    return;
+                }
 
-           $.ajax({
-               url: '/ReceivingEq/SearchLocation', // action สำหรับค้นหา Location
-               type: 'GET',
-               data: { keyword: query },
-               success: function (res) {
-                   let html = '';
-                   if (res && res.length > 0) {
-                       html += '<div class="list-group">';
-                       res.forEach(loc => {
-                           html += `<button type="button" class="list-group-item list-group-item-action" onclick="selectLocation('${loc.LocationID}')">${loc.LocationID} - ${loc.Name}</button>`;
-                       });
-                       html += '</div>';
-                   } else {
-                       html = '<div class="text-muted">ไม่พบ Location</div>';
-                   }
-                   $("#locationList").html(html);
-               }
-           });
-       });
+                $.ajax({
+                    url: '@Url.Action("SearchLocation", "ReceivingEq")', // action สำหรับค้นหา Location 
+                    type: 'GET',
+                    data: { keyword: query },
+                    success: function (res) {
+                        let html = '';
+                        if (res && res.length > 0) {
+                            html += '<div class="d-flex flex-wrap gap-2">';
+                
+                            // สีที่จะวนใช้
+                            const colors = [
+                                "btn-outline-primary",
+                                "btn-outline-success",
+                                "btn-outline-warning",
+                                "btn-outline-info",
+                                "btn-outline-secondary"
+                            ];
 
-       // คลิกเลือก Location => บันทึกทันที
-       function selectLocation(locationId) {
-           let serialNo = $("#currentSerialNo").val();
+                            res.forEach((loc, i) => {
+                                let colorClass = colors[i % colors.length]; // สลับสีตาม index
+                                html += `<button type="button" class="btn ${colorClass}" onclick="selectLocation('${loc.locationID}','${loc.name}')">
+                                            ${loc.locationID} - ${loc.name}
+                                         </button>`;
+                            });
 
-           $.ajax({
-               url: '/ReceivingEq/SaveLocation',
-               type: 'POST',
-               data: JSON.stringify({ locationId: locationId }),
-               contentType: 'application/json; charset=utf-8',
-               beforeSend: function () { ShowLoading(); },
-               success: function (res) {
-                   if (res.success) {
-                       Swal.fire({
-                           icon: 'success',
-                           title: 'บันทึกสำเร็จ',
-                           timer: 1000,
-                           showConfirmButton: false
-                       }).then(() => {
-                           $("#modalAddLocation").modal('hide');
-                           location.reload(); // หรืออัปเดตเฉพาะ row
-                       });
-                   } else {
-                       Swal.fire({
-                           icon: 'error',
-                           title: 'เกิดข้อผิดพลาด',
-                           text: res.message || ''
-                       });
-                   }
-               },
-               complete: function () { ShowLoading(false); }
-           });
-       }
+                            html += '</div>';
+                        } else {
+                            html = '<div class="text-muted">ไม่พบ Location</div>';
+                        }
+                        $("#locationList").html(html);
+                    }
+                });
+            });
 
-   
+ 
 
-    </script>
+      // คลิกเลือก Location => แสดง popup ยืนยันก่อนบันทึก
+            function selectLocation(locationId,name) {
+                let serialNo = $("#selectedSerialNo").val();
 
-
-
-
-
+                Swal.fire({
+                    title: 'ยืนยันการบันทึก?',
+                    text: `คุณต้องการบันทึก Location: ${locationId}${name}  สำหรับ Serial: ${serialNo} ใช่หรือไม่?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึก',
+                    cancelButtonText: 'ยกเลิก'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // ถ้ายืนยัน -> ค่อยยิง AJAX ไปบันทึก
+                        $.ajax({
+                            url: '@Url.Action("SaveLocation", "ReceivingEq")',
+                            type: 'POST',
+                            data: { locationId: locationId, serialNo: serialNo },
+                            dataType: "json",
+                            beforeSend: function () { ShowLoading(); },
+                            success: function (res) {
+                                if (res.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'บันทึกสำเร็จ',
+                                        timer: 1000,
+                                        showConfirmButton: false
+                                    }).then(() => {
+                                        $("#modalAddLocation").modal('hide');
+                                        location.reload(); // หรืออัปเดตเฉพาะ row
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'เกิดข้อผิดพลาด',
+                                        text: res.message || ''
+                                    });
+                                }
+                            },
+                            complete: function () { ShowLoading(false); }
+                        });
+                    }
+                });
+            } 
+    </script> 
 
 
     <script>
@@ -398,7 +444,8 @@
                 if (result.isConfirmed) {
                     // ส่งข้อมูลไป backend
                     $.ajax({
-                        url: '/ReceivingEq/SendInventory', // เปลี่ยนเป็น Action ของคุณ
+                     url: '@Url.Action("SendInventory", "ReceivingEq")',
+
                         type: 'POST',
 
                         data: JSON.stringify(selectedIds), // ✅ ส่ง array ตรง ๆ

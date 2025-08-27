@@ -15,6 +15,9 @@ namespace Receiving.Data
               : base(options)
         {
         }
+        public virtual DbSet<V_HR_PR_EquipmentInventory> V_HR_PR_EquipmentInventory { get; set; }
+        public virtual DbSet<HR_PR_EquipmentBranch> HR_PR_EquipmentBranch { get; set; }
+        public virtual DbSet<HR_PR_EquipmentClaimRate> HR_PR_EquipmentClaimRate { get; set; }
         public virtual DbSet<HR_PR_EquipmentReceivingDetail> HR_PR_EquipmentReceivingDetail { get; set; }
         public virtual DbSet<HR_PR_EquipmentInventory> HR_PR_EquipmentInventory { get; set; }
         public virtual DbSet<HR_PR_EquipmentStockCard> HR_PR_EquipmentStockCard { get; set; }

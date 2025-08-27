@@ -41,9 +41,6 @@
     <Reference Include="GFPT.Extension.Paging.Std20">
       <HintPath>M:\System Development\Private\Programmer\Extension\GFPT.Extension.Paging.Std20.dll</HintPath>
     </Reference>
-    <Reference Include="GFPT.Extension.Utility">
-      <HintPath>Q:\Extension\Utility\GFPT.Extension.Utility.dll</HintPath>
-    </Reference>
     <Reference Include="GFPT.Extension.Utility.Std">
       <HintPath>M:\System Development\Private\Programmer\Extension\GFPT.Extension.Utility.Std.dll</HintPath>
     </Reference>

@@ -9,6 +9,112 @@ using System.Text;
 namespace Receiving.Data
 { 
 
+    public interface IClaimRateRepository : IRepository<HR_PR_EquipmentClaimRate>
+    {
+        int GetRunning();
+        HelperPaging<HR_PR_EquipmentClaimRate> GetDataList(Search search);
+    }
+    public class  ClaimRateRepository : Repository<HR_PR_EquipmentClaimRate>, IClaimRateRepository
+    {
+        public ClaimRateRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+        public int GetRunning()
+        {
+            var runningId = 0;
+            try
+            { 
+                var result = RepositoryContext.HR_PR_EquipmentClaimRate.Max(e => e.ClaimRateID.Substring(1));
+                runningId = Convert.ToInt32(result) + 1;
+            }
+            catch { runningId = -1; }
+            return runningId;
+        }
+        public HelperPaging<HR_PR_EquipmentClaimRate> GetDataList(Search search)
+        {
+            try
+            { 
+
+                var items = RepositoryContext.HR_PR_EquipmentClaimRate.Include(d=>d.V_HR_MT_Department).Where(l =>
+                                                                         (l.ClaimRateID.Contains(search.RunningID)   ||  string.IsNullOrEmpty(search.RunningID))   
+                                                                    );
+                bool usestatus = false;
+                if (search.TypeID == "1") { usestatus = true; }
+                if (!string.IsNullOrEmpty(search?.TypeID))
+                {
+                    items = items.Where(l => l.UsageStatus == usestatus);
+                }
+
+                search.sorting = String.IsNullOrEmpty(search.sorting) ? "ClaimRateID" : search.sorting;
+                search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort; 
+                var result = new HelperPaging<HR_PR_EquipmentClaimRate>(items.OrderByDescending(l => l.ClaimRateID), (search.page != 0 ? search.page : 1), search.PageSetNumber, search.PageOn); 
+                result.Items = result.ToList();
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        } 
+        
+    }
+
+    public interface IBranchRepository : IRepository<HR_PR_EquipmentBranch>
+    {
+        int GetRunning();
+        HelperPaging<HR_PR_EquipmentBranch> GetDataList(Search search);
+    }
+    public class BranchRepository : Repository<HR_PR_EquipmentBranch>, IBranchRepository
+    {
+        public BranchRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+        public int GetRunning()
+        {
+            var runningId = 0;
+            try
+            { 
+                var result = RepositoryContext.HR_PR_EquipmentBranch.Max(e => e.BranchID.Substring(1));
+                runningId = Convert.ToInt32(result) + 1;
+            }
+            catch { runningId = -1; }
+            return runningId;
+        }
+        public HelperPaging<HR_PR_EquipmentBranch> GetDataList(Search search)
+        {
+            try
+            { 
+
+                var items = RepositoryContext.HR_PR_EquipmentBranch.Where(l =>
+                                                                         (l.BranchName.Contains(search.RunningID) || l.BranchID.Contains(search.RunningID) ||  string.IsNullOrEmpty(search.RunningID))   
+                                                                    );
+                bool usestatus = false;
+                if (search.TypeID == "1") { usestatus = true; }
+                if (!string.IsNullOrEmpty(search?.TypeID))
+                {
+                    items = items.Where(l => l.UsageStatus == usestatus);
+                }
+
+                search.sorting = String.IsNullOrEmpty(search.sorting) ? "BranchID" : search.sorting;
+                search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort; 
+                var result = new HelperPaging<HR_PR_EquipmentBranch>(items.OrderByDescending(l => l.BranchID), (search.page != 0 ? search.page : 1), search.PageSetNumber, search.PageOn); 
+                result.Items = result.ToList();
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        } 
+        
+    }
+
+
+
     public interface IEquipmentZoneRepository : IRepository<HR_PR_EquipmentZone>
     { 
         HelperPaging<HR_PR_EquipmentZone> GetDataList(Search search);
@@ -23,10 +129,19 @@ namespace Receiving.Data
         {
             try
             {
+                
+         
+
                 var items = RepositoryContext.HR_PR_EquipmentZone.Include(s => s.HR_PR_EquipmentLocation) 
                                                                     .Where(l =>
-                                                                         (l.ZoneName.Contains(search.critiria) || l.ZoneID.Contains(search.critiria) ||  string.IsNullOrEmpty(search.critiria))   
-                                                                    ); 
+                                                                         (l.ZoneName.Contains(search.RunningID) || l.ZoneID.Contains(search.RunningID) ||  string.IsNullOrEmpty(search.RunningID))   
+                                                                    );
+                bool usestatus = false;
+                if (search.TypeID == "1") { usestatus = true; }
+                if (!string.IsNullOrEmpty(search?.TypeID))
+                {
+                    items = items.Where(l => l.UsageStatus == usestatus);
+                }
 
                 search.sorting = String.IsNullOrEmpty(search.sorting) ? "ZoneID" : search.sorting;
                 search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort; 
@@ -44,6 +159,63 @@ namespace Receiving.Data
 
         
     }
+
+   public interface IVInventoryRepository : IRepository<V_HR_PR_EquipmentInventory>
+    {
+        HelperPaging<V_HR_PR_EquipmentInventory> GetDataList(Search search);
+    }
+    public class VInventoryRepository : Repository<V_HR_PR_EquipmentInventory>, IVInventoryRepository
+    {
+        public VInventoryRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+        public HelperPaging<V_HR_PR_EquipmentInventory> GetDataList(Search search)
+        {
+            try
+            { 
+
+                var items = RepositoryContext.V_HR_PR_EquipmentInventory
+                                                                    .Where(l =>
+                                                                         (l.CodeID.Contains(search.RunningID) || l.CodeName.Contains(search.RunningID) || string.IsNullOrEmpty(search.RunningID))
+                                                                        && (l.ReceivingType.Contains(search.TypeID) || string.IsNullOrEmpty(search.TypeID))
+                                                                    ); 
+                search.sorting = String.IsNullOrEmpty(search.sorting) ? "CodeID" : search.sorting;
+                search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort;
+                var result = new HelperPaging<V_HR_PR_EquipmentInventory>(items.OrderByDescending(l => l.CodeID), (search.page != 0 ? search.page : 1), search.PageSetNumber, search.PageOn);
+                result.Items = result.ToList();
+                return result;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
+
+
+
+    }
+
+    public interface ILocationRepository : IRepository<HR_PR_EquipmentLocation>
+    { 
+    }
+    public class  LocationRepository : Repository<HR_PR_EquipmentLocation>, ILocationRepository
+    {
+        public LocationRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+ 
+
+        
+    }
+
+
+
+
+
+
 
      public interface IReceivingHeaderRepository : IRepository<HR_PR_EquipmentReceivingHeader>
     {

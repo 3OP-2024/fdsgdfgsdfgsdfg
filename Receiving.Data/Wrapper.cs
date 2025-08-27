@@ -11,11 +11,17 @@ namespace Receiving.Data
         public Wrapper(Context repositoryContext)
         {
             _repoContext = repositoryContext;
-        } 
- 
+        }
+
+        
+
+        public IVInventoryRepository VInventory => new VInventoryRepository(_repoContext);
+        public ILocationRepository Location => new LocationRepository(_repoContext);
         public IStockCardRepository StockCard => new  StockCardRepository(_repoContext);
         public IEquipmentInventoryRepository Inventory => new EquipmentInventoryRepository(_repoContext);
         public IEquipmentZoneRepository EquipmentZone => new  EquipmentZoneRepository(_repoContext);
+        public IBranchRepository Branch => new  BranchRepository(_repoContext);
+        public IClaimRateRepository ClaimRate   => new ClaimRateRepository(_repoContext);
 
           
 

@@ -9,6 +9,7 @@ namespace Receiving.Models
 
         public string ID { get; set; } 
         public string TypeID { get; set; } 
+        public string BranchID { get; set; } 
         public string _typestatus { get; set; } 
 
 
@@ -51,7 +52,7 @@ namespace Receiving.Models
         {
             get
             {
-                return 20;
+                return 25;
             }
         }
         public string TypeIDName

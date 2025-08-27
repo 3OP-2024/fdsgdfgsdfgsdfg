@@ -1,0 +1,85 @@
+﻿<div class="container mt-4">
+    <h4 class="mb-3"><i class="ti ti-clipboard-list me-2"></i> รายงานสินค้าคงคลัง (Stock Card)</h4>
+
+    <!-- ฟอร์มค้นหา -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">รหัสสินค้า</label>
+                    <input type="text" class="form-control" id="txtItemCode" placeholder="เช่น P001">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">วันที่เริ่มต้น</label>
+                    <input type="date" class="form-control" id="txtDateFrom">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">วันที่สิ้นสุด</label>
+                    <input type="date" class="form-control" id="txtDateTo">
+                </div>
+            </div>
+            <div class="text-end mt-3">
+                <button type="button" class="btn btn-primary">
+                    <i class="ti ti-search me-1"></i> ค้นหา
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Card รายการ -->
+    <div class="row g-3">
+
+        <!-- Card 1 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-body">
+                    <h6 class="text-primary"><i class="ti ti-package me-1"></i> P001 - สินค้า A</h6>
+                    <p class="mb-1"><small class="text-muted">วันที่: 01/08/2025</small></p>
+                    <p class="mb-1">เอกสาร: <span class="fw-bold">GRN-0001 (รับเข้า)</span></p>
+                    <p class="text-success mb-1">รับเข้า: +100</p>
+                    <p class="text-muted mb-1">จ่ายออก: -</p>
+                    <p class="fw-bold">คงเหลือ: <span class="text-dark">100</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <h6 class="text-danger"><i class="ti ti-package-export me-1"></i> P001 - สินค้า A</h6>
+                    <p class="mb-1"><small class="text-muted">วันที่: 05/08/2025</small></p>
+                    <p class="mb-1">เอกสาร: <span class="fw-bold">ISS-0003 (เบิกผลิต)</span></p>
+                    <p class="text-muted mb-1">รับเข้า: -</p>
+                    <p class="text-danger mb-1">จ่ายออก: -30</p>
+                    <p class="fw-bold">คงเหลือ: <span class="text-dark">70</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-info">
+                <div class="card-body">
+                    <h6 class="text-info"><i class="ti ti-adjustments-alt me-1"></i> P001 - สินค้า A</h6>
+                    <p class="mb-1"><small class="text-muted">วันที่: 10/08/2025</small></p>
+                    <p class="mb-1">เอกสาร: <span class="fw-bold">ADJ-0002 (ปรับปรุงสต๊อก)</span></p>
+                    <p class="text-success mb-1">รับเข้า: +5</p>
+                    <p class="text-muted mb-1">จ่ายออก: -</p>
+                    <p class="fw-bold">คงเหลือ: <span class="text-dark">75</span></p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ปุ่ม Export -->
+    <div class="mt-4 text-end">
+        <button class="btn btn-outline-success">
+            <i class="ti ti-file-spreadsheet me-1"></i> ส่งออก Excel
+        </button>
+        <button class="btn btn-outline-danger">
+            <i class="ti ti-file-pdf me-1"></i> ส่งออก PDF
+        </button>
+    </div>
+</div>

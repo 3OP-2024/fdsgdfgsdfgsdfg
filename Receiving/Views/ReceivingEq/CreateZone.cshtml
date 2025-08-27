@@ -5,6 +5,8 @@
             background-color: #e9ecef; /* สีเทาอ่อน */
             cursor: not-allowed; /* เปลี่ยน cursor */
         }
+        
+
     </style>
 
 }
@@ -35,9 +37,13 @@
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title">Locations</h3>
-                <button type="button" class="btn btn-brown btn-sm" onclick="addLocationRow()">
-                    <i class="ti ti-plus me-1"></i> เพิ่ม Location
-                </button>
+                @if (!string.IsNullOrEmpty(Model?.ZoneID))
+                {
+                    <button type="button" class="btn btn-brown btn-sm" onclick="addLocationRow()">
+                        <i class="ti ti-plus me-1"></i> เพิ่ม Location
+                    </button>
+                }
+
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive mt-5">
@@ -53,42 +59,41 @@
                                 <th></th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @if (Model?.HR_PR_EquipmentLocation != null)
                             {
                                 @foreach (var item in Model.HR_PR_EquipmentLocation)
                                 {
                                     <tr>
-                                        <td>
-                                            @item?.ZoneID
+                                        <td class="zone-id">@item?.ZoneID</td>
+                                        <td class="location-id">@item?.LocationID</td>
+                                        <td class="location-name">
+                                            <span class="d-block">@item?.LocationName</span>
+                                            <input type="text" class="form-control form-control-sm d-none" value="@item?.LocationName" name="LocationName" placeholder="ชื่อ">
                                         </td>
-                                        <td class="text-left  ">@item?.LocationID</td>
-                                        <td class="text-left  ">
-                                            <input type="text" class="form-control form-control-sm" value="@item?.LocationName" name="LocationName" placeholder="ชื่อ">
+                                        <td class="capacity">
+                                            <span class="d-block">@item?.Capacity</span>
+                                            <input type="number" class="form-control form-control-sm d-none" name="Capacity" value="@item?.Capacity" placeholder="ความจุ">
                                         </td>
-                                        <td class="text-left  ">
-                                            <input type="number" class="form-control form-control-sm" name="Capacity" placeholder="ความจุ" value="@item?.Capacity">
-                                        </td>
-                                        @{
-
-                                            var strUsageStatus = item?.UsageStatus == true ? "1" : "0";
-                                        }
-                                        <td class="text-center">
-                                            <select class="form-select form-select-sm" name="LocationStatus"
-                                                    asp-items="ViewBag._typedaystatus"
+                                        <td class="text-center Ustatus">
+                                            @{
+                                                var strUsageStatus = item?.UsageStatus == true ? "1" : "0";
+                                            }
+                                            <span class="d-block @((item?.UsageStatus == true) ? "text-green" : "text-red")  " >@((item?.UsageStatus == true) ? "ใช้งาน" : "ไม่ใช้งาน")</span>
+                                            <select class="form-select form-select-sm d-none" name="LocationStatus" asp-items="ViewBag._typedaystatus"
                                                     asp-for="@strUsageStatus"></select> 
-                                         </td> 
-                                        <td class="text-left  ">
-                                            @item?.EditName - @item?.EditDate
                                         </td>
-
-                                        <td class="text-center  ">
-                                            <i class="ti ti-edit"></i>
+                                        <td class="text-left">@item?.EditName - @item?.EditDate</td>
+                                        <td class="text-center">
+                                            <i class="ti ti-edit text-primary btn-edit" style="cursor:pointer;"></i>
                                         </td>
                                     </tr>
                                 }
                             }
                         </tbody>
+
+                         
                     </table>
                 </div>
             </div>
@@ -110,8 +115,16 @@
         @*</form>*@
     </div>
 </div>
+@section scripts {
+    <script>
 
-<script>
+    $(document).ready(function () {
+        $("#tblLocations").on("click", ".btn-edit", function () {
+            var tr = $(this).closest("tr");
+            tr.find("td.location-name span, td.capacity span, td.Ustatus span").addClass("d-none");
+            tr.find("td.location-name input, td.capacity input, td.Ustatus select").removeClass("d-none");
+        });
+    });
 
     function addLocationRow() {
         const zoneValue = $("#CodeID").val();
@@ -190,12 +203,12 @@
         },
         success: function(res){
                if (res.success) {
-                        let link =  '';
-                        if ($("#CodeID").val() != "") {
+                        let link =    '@Url.Action("CreateZone", "ReceivingEq")' + "?ID=" + res.id;
+                        @*if ($("#CodeID").val() != "") {
                             link =  '@Url.Action("ListMasterZone", "ReceivingEq" )';
                         } else {
                             link = '@Url.Action("CreateZone", "ReceivingEq")' + "?ID=" + res.id;
-                        }
+                        }*@
 
                         showSuccess("บันทึกสำเร็จ", link);
                     }
@@ -207,4 +220,5 @@
         }
     });
 }
-</script>
+    </script>
+    }

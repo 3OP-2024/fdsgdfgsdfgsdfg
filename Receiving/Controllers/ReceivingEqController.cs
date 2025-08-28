@@ -63,18 +63,20 @@ namespace Receiving.Controllers
             return View();
         }
 
-        public IActionResult FindePrItem(string critiria)
+        public IActionResult FindePrItem(string critiria, string DepartmentID, string  StartFrom , string  StartTo)
         {
 
             var result = _repo.VWH
                         .FindByCondition(e =>
-                            string.IsNullOrEmpty(critiria) ||
+                          (  string.IsNullOrEmpty(critiria) ||
                             e.ShopName.StartsWith(critiria) ||
                             e.ShopID.StartsWith(critiria) ||
-                            e.CodeName.StartsWith(critiria)
+                            e.CodeName.StartsWith(critiria))
+                            &&(string.IsNullOrEmpty(DepartmentID) || e.DepartmentID.Contains(DepartmentID))
                         )
                         .GroupBy(e => new
                         {
+                            e.RequestDate,
                             e.RequestNo,
                             e.DepartmentID,
                             e.ShopID,
@@ -83,6 +85,7 @@ namespace Receiving.Controllers
                         })
                         .Select(g => new
                         {
+                            RequestDate = g.Key.RequestDate,
                             RequestNo = g.Key.RequestNo,
                             DepartmentID = g.Key.DepartmentID,
                             ShopID = g.Key.ShopID,
@@ -95,6 +98,14 @@ namespace Receiving.Controllers
                         .OrderBy(d => d.DepartmentID)
                         .ToList();
 
+             var search = new Search();
+            if (!string.IsNullOrEmpty(StartFrom)) { search.DateStartFrom = StartFrom.stringToDateTime(); }
+            if (!string.IsNullOrEmpty(StartTo)) { search.DateStartTo = StartTo.stringToDateTime(); }
+
+            if (search.DateStartFrom != default(DateTime) && search.DateStartTo != default(DateTime)) { result = result.Where(e => search.DateStartFrom.Date <= e.RequestDate.Date && e.RequestDate.Date <= search.DateStartTo.Date).ToList(); }
+
+
+             
 
             return Json(result);
 
@@ -183,7 +194,9 @@ namespace Receiving.Controllers
             ViewBag.Search = item; 
              ViewBag.Branch = new SelectList(_repo.Branch.FindByCondition(l=>l.UsageStatus == true), "BranchID", "BranchIDAndName", result?.BranchID);
              ViewBag.ClaimRate = new SelectList(_repo.ClaimRate.FindByCondition(l=>l.UsageStatus == true), "ClaimRateID", "ClaimRateNumber");
+            var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true).ToList();
 
+            ViewBag.DepartmentID = new SelectList(MTDepartment, "DepartmentID", "DepartmentIDAndName" );
             return View(result);
         }
         [HttpPost]
@@ -277,6 +290,21 @@ namespace Receiving.Controllers
                          item.EditName = user.UserName;
                          item.EditDate = DateTime.Now;
                         _repo.Inventory.Update(item);
+
+                        var oldStockCard = new HR_PR_EquipmentStockCard()
+                        {
+                            RunningID = item.RunningID,
+                            CodeID = item.CodeID,
+                            CodeName = item.CodeName,
+                            QtyPay = 0,
+                            QtyReceived = item.QtyReceived,
+                            EditID = user.UserID,
+                            EditName = user.UserName,
+                            EditDate = DateTime.Now,
+                        };
+
+                        _repo.StockCard.Create(oldStockCard);
+
                     }
                 }
                 _repo.Save();
@@ -669,6 +697,91 @@ namespace Receiving.Controllers
 
             return View(ListItemss);
         }
+        // ================= Inventory =================
+        [HttpGet]
+        public IActionResult GetInventory(string codeID)
+        {
+            try
+            {
+                // ตัวอย่าง Mock Data (คุณสามารถ query จาก DB จริงแทนได้)
+
+                var items = _repo.Inventory.FindByCondition(l => l.CodeID == codeID).ToList().Select(l=> new  {
+
+                    CodeIDName = l.CodeName,
+                    SerialNo = l.SerialNo,
+                    LocationID = l.LocationID,
+                    QtyReceived = l.QtyReceived,
+                    LotNo =l.LotNo,
+                    ExpireDate = l.ExpireDateTH
+
+                });
+                 
+                var result = new
+                {
+                    success = true,
+                    data = new
+                    {
+                        CodeName = items.FirstOrDefault()?.CodeIDName,
+                        TotalQty = items.Sum(x => x.QtyReceived),
+                        Items = items
+                    }
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        // ================= Stock Card =================
+        [HttpGet]
+        public IActionResult GetStockCard(string codeID)
+        {
+            try
+            {
+                var rawItems = _repo.StockCard
+                    .FindByCondition(l => l.CodeID == codeID)
+                    .OrderBy(l => l.EditDate)   // เรียงตามวันที่ (สำคัญมาก)
+                    .ToList();
+
+                int balance = 0;
+                var items = rawItems.Select(l =>
+                {
+                    balance += (l.QtyReceived ?? 0) - (l.QtyPay ?? 0);
+
+                    return new
+                    {
+                        CodeIDName = l.CodeName,
+                        TransDate = l.EditDateTH,
+                        RefNo = l.RunningID,
+                        QtyIn = l.QtyReceived ?? 0,
+                        QtyOut = l.QtyPay ?? 0,
+                        Balance = balance
+                    };
+                }).ToList();
+
+                var result = new
+                {
+                    success = true,
+                    data = new
+                    {
+                        CodeName = items.FirstOrDefault()?.CodeIDName ?? "",
+                        TotalQty = items.LastOrDefault()?.Balance ?? 0,
+                        Items = items
+                    }
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
 
 
     }

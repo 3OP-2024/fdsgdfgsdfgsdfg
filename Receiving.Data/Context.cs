@@ -44,6 +44,10 @@ namespace Receiving.Data
             {
                 entity.HasKey(e => new { e.ShopName, e.ShopID, e.PODate, e.PONO, e.ItemOrder, e.DepartmentID, e.RequestDate, e.RequestNo });
             });
+            modelBuilder.Entity<HR_PR_EquipmentStockCard>(entity =>
+            {
+                entity.HasKey(e => new { e.CodeID, e.RunningID });
+            });
             modelBuilder.Entity<Sys_ProgramStatus>(entity =>
             {
                 entity.HasKey(e => new { e.ProgramID, e.StatusID })

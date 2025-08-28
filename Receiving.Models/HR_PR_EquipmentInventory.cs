@@ -16,10 +16,21 @@ namespace Receiving.Models
         public string ReceivingType { get; set; }
 
         [StringLength(7)]
-        public string CodeID { get; set; }
-
-       
+        public string CodeID { get; set; } 
         public string CodeName { get; set; }
+
+        public string CodeIDName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(CodeID))
+                {
+                    return CodeID + "-" + CodeName;
+                }
+                return "";
+            }
+
+        }
 
         [StringLength(10)]
         public string LotNo { get; set; }
@@ -99,11 +110,24 @@ namespace Receiving.Models
 
         [Column(TypeName = "date")]
         public DateTime? ExpireDate { get; set; }
+        public string ExpireDateTH
+        {
+            get
+            {
+                if (ExpireDate == null)
+                {
+                    return "";
+                }
+                return ExpireDate.Value.ToString("dd/MM/yyyy");
+            }
+        }
 
         [StringLength(10)]
         public string LocationID { get; set; }
 
-         
+        [ForeignKey("LocationID")]
+        public virtual HR_PR_EquipmentLocation HR_PR_EquipmentLocation { get; set; }
+
         [StringLength(10)]
         public string RunningID { get; set; }
 

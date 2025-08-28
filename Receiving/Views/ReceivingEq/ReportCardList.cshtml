@@ -1,7 +1,7 @@
 ﻿@model GFPT.Extension.Paging.Std20.HelperPaging<Receiving.Models.V_HR_PR_EquipmentInventory>
 @{
- Receiving.Models.Search Search = ViewBag.Search ?? null;
-//var TotalItems = Model?.TotalItems;
+    Receiving.Models.Search Search = ViewBag.Search ?? null;
+    //var TotalItems = Model?.TotalItems;
 }
 @section Css{
     <style>
@@ -28,9 +28,9 @@
                 <div class="card-body">
                     <form method="get" id="formSearch">
                         @*<input type="hidden" id="statusPage" name="statusPage" value="@Search.statusPage" />
-                        <input type="hidden" id="page" name="page" />
-                        <input type="hidden" id="sorting" name="sorting" value="@Search.sorting" />
-                        <input type="hidden" id="currentSort" name="currentSort" value="@ViewBag.CurrentSort" />*@
+                            <input type="hidden" id="page" name="page" />
+                            <input type="hidden" id="sorting" name="sorting" value="@Search.sorting" />
+                            <input type="hidden" id="currentSort" name="currentSort" value="@ViewBag.CurrentSort" />*@
                         <!-- กลุ่มที่ 1 -->
                         <div class="row g-3 align-items-center">
                             <div class="col-md-1 text-end">
@@ -43,27 +43,26 @@
                             <div class="col-md-1 text-end">
                                 <label class="form-label w-100">ประเภทการรับ :</label>
                             </div>
-                            
-                                <div class="col-md-2">
-                                    <select id="TypeID" name="TypeID" class="form-select" asp-items="@ViewBag.TypeID">
-                                        <option value="">ทั้งหมด</option>
-                                    </select>
 
-                                </div>
-                             
+                            <div class="col-md-2">
+                                <select id="TypeID" name="TypeID" class="form-select" asp-items="@ViewBag.TypeID">
+                                    <option value="">ทั้งหมด</option>
+                                </select>
 
-                          
+                            </div>
+
+
+
 
                             <div class="col-md-3 text-start">
                                 <button type="submit" class="btn btn-info me-1">
                                     <i class="ti ti-search"></i> ค้นหา
                                 </button>
-                                <a href="/" class="btn btn-outline-danger">
-                                    <i class="ti ti-x"></i> ปิดหน้านี้
-                                </a>
+                                <a href='@Url.Action("Index","Home")' class="btn btn-outline-danger" role="button"><i class="mdi mdi-close-circle-outline"></i> ปิดหน้านี้</a>
+
                             </div>
-                        </div> 
-                    </form> 
+                        </div>
+                    </form>
 
                     <div class="mt-4 mb-3">
                         @*<span>แสดงทั้งหมด <strong>@Model?.Items?.Count()</strong> รายการ จาก <strong>@Model?.TotalItems</strong> รายการ</span>*@
@@ -72,57 +71,55 @@
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
-                                <tr class="text-center"> 
+                                <tr class="text-center">
                                     <th>ประเภทการรับ</th>
                                     <th>รหัสสินค้า</th>
                                     <th>ชื่อสินค้า</th>
                                     <th>จำนวน</th>
                                     <th>หน่วย</th>
-                                    <th>Stock Card</th> 
+                                    <th>Stock Card</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @if (Model?.Items != null)
                                 {
-                                    @foreach (var item in Model.Items)
+                                    foreach (var item in Model.Items)
                                     {
                                         <tr>
-                                            
-                                            <td class="text-left @(item.ReceivingType == "001" ?  "color-orange" : "color-green" )  ">@item?.TypeIDName</td>
-                                            <td class="text-left  "> 
-                                                <button class="btn btn-sm btn-outline-primary"
+                                            <td class="text-left @(item.ReceivingType == "001" ? "color-orange" : "color-green")">
+                                                @item?.TypeIDName
+                                            </td>
+
+                                            <!-- ปุ่ม Inventory -->
+                                            <td class="text-left">
+                                                <button class="btn btn-sm btn-outline-primary btn-show-inventory"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#modalAddLocation"
-                                                        data-serial="@item.CodeID">
-                                                    <i class="ti ti-map-pin-plus me-1"></i> @item.CodeID
+                                                        data-bs-target="#modalInventory"
+                                                        data-code="@item.CodeID">
+                                                      @item.CodeID
                                                 </button>
                                             </td>
-                                            <td class="text-left  ">
-                                                @item?.CodeName
-                                            </td>
-                                            <td class="text-left  ">
-                                                @item?.TotalQtyReceived
-                                            </td>
-                                            <td class="text-left  ">
-                                                @item?.Unit
-                                            </td> 
-                                            <td class="text-center ">
-                                                <button class="btn btn-sm btn-outline-primary"
+
+                                            <td class="text-left">@item?.CodeName</td>
+                                            <td class="text-left">@item?.TotalQtyReceived</td>
+                                            <td class="text-left">@item?.Unit</td>
+
+                                            <!-- ปุ่ม Stock Card -->
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-primary btn-show-stock"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#modalAddLocation"
-                                                        data-serial="@item.CodeID">
-                                                    <i class="ti ti-map-pin-plus me-1"></i> View
+                                                        data-bs-target="#modalStockCard"
+                                                        data-code="@item.CodeID">
+                                                    <i class="ti ti-eye me-1"></i> View
                                                 </button>
-                                                
                                             </td>
                                         </tr>
                                     }
                                 }
-
-
                             </tbody>
                         </table>
                     </div>
+
 
                     @*@if (Model?.EndPage > 1)
                         {
@@ -162,167 +159,201 @@
     </div>
 </div>
 
-<div id="popupModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+<!-- Modal Inventory -->
+<div class="modal fade" id="modalInventory" tabindex="-1" aria-labelledby="modalInventoryLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header modal-header-info">
-                <h4 class="modal-title text-white header">เพิ่ม/แก้ไข</h4>
-                <button type="button" class="close btn btn-default waves-effect" data-dismiss="modal" aria-hidden="true">×</button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalInventoryLabel">Inventory Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="" style="padding:15px;border-bottom: 1px solid #e9ecef;">
-                <div id="divSearch" class="row">
-                    <div class="col-1">
+            <div class="modal-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-2 text-end">
+                        <label class="form-label w-100">ชื่อ สินค้า :</label>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label w-100" id="ModalCodeid"></label>
+                    </div>
 
+                    <div class="col-md-2 text-end">
+                        <label class="form-label w-100">จำนวน :</label>
                     </div>
-                    <div class="col-2 text-right">
-                        รหัสสินค้า : <span class="text-red">*</span>
+
+                    <div class="col-md-2">
+                        <label class="form-label w-100" id="ModalQty"></label>
                     </div>
-                    <div class="col-2 ">
-                        <input type="text" id="ItemNo" class="form-control" autocomplete="off" />
-                    </div>
-                    <div class="col-2 text-right">
-                        ชื่อสินค้า :
-                    </div>
-                    <div class="col-2 ">
-                        <input type="text" id="ItemName" class="form-control" autocomplete="off" />
+
+                    <div class="col-md-3 text-start">
+                         
                     </div>
                 </div>
-                <div class="form-group row m-t-10">
-                    <div class="col-1">
-
-                    </div>
-                    <div class="col-2 text-right">
-                        Mix:
-                    </div>
-                    <div class="col-2">
-                        <input type="text" id="Mix" class="form-control" autocomplete="off" />
-
-
-                    </div>
-                    <div class="col-2 text-right">
-                        น้ำหนัก :
-                    </div>
-                    <div class="col-2 ">
-                        <input type="text" id="Weight" class="form-control numbersOnlyWDigi" autocomplete="off" />
-                    </div>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover text-center" id="InventoryTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Serial No.</th>
+                                <th>Location</th>
+                                <th>จำนวน</th>
+                                <th>Lot No.</th>
+                                <th>วันหมดอายุ</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
                 </div>
-                <div class="form-group row m-t-10">
-                    <div class="col-1">
-
-                    </div>
-                    <div class="col-2 text-right">
-                        หน่วย
-                    </div>
-                    <div class="col-2">
-                        <input type="text" id="Unit" class="form-control" autocomplete="off" />
-
-                    </div>
-                    <div class="col-2 text-right">
-                        CodeName
-                    </div>
-                    <div class="col-2 ">
-                        <input type="text" id="CodeName" class="form-control" autocomplete="off" />
-                    </div>
-                </div>
-
-                <div class="form-group row m-t-10">
-                    <div class="col-1">
-
-                    </div>
-                    <div class="col-2 text-right">
-                        ชื่อสินค้า
-                    </div>
-                    <div class="col-2">
-                        <input type="text" id="ProductName" class="form-control" autocomplete="off" />
-
-                    </div>
-                    <div class="col-2 text-right">
-                        รหัสสูตร
-                    </div>
-                    <div class="col-2 ">
-                        <input type="text" id="RecipeCode" class="form-control" autocomplete="off" />
-                    </div>
-                </div>
-                <div class="form-group row m-t-10">
-                    <div class="col-1">
-
-                    </div>
-                    <div class="col-2 text-right">
-                        Allergen
-                    </div>
-                    <div class="col-2">
-                        <input type="text" id="Allergen" class="form-control" autocomplete="off" />
-
-                    </div>
-                    <div class="col-2 text-right">
-                        รายละเอียดน้ำหนัก
-                    </div>
-                    <div class="col-2 ">
-                        <input type="text" id="WeightDetail" class="form-control" autocomplete="off" />
-                    </div>
-                </div>
-                <div class="form-group row m-t-10">
-                    <div class="col-1">
-
-                    </div>
-                    <div class="col-2 text-right">
-                        BatchSize
-                    </div>
-                    <div class="col-2">
-                        <input type="text" id="BatchSize" class="form-control" autocomplete="off" />
-
-                    </div>
-                    <div class="col-2 text-right">
-                        MixNew
-                    </div>
-                    <div class="col-2 ">
-                        <input type="text" id="MixNew" class="form-control" autocomplete="off" />
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <div class=" text-center col-12">
-                    <button type="button" class="btn btn-success " onclick="Save();"><i class="fa fa-save"></i> บันทึก</button>
-                    <button type="button" class="btn btn-outline-danger waves-effect" data-dismiss="modal">ปิด</button>
-                </div>
-
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Stock Card -->
+<div class="modal fade" id="modalStockCard" tabindex="-1" aria-labelledby="modalStockCardLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalStockCardLabel">Stock Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-2 text-end">
+                        <label class="form-label w-100">ชื่อ สินค้า :</label>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label w-100" id="ModalStockCodeid"></label>
+                    </div>
+
+                    <div class="col-md-2 text-end">
+                        <label class="form-label w-100">จำนวน :</label>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label w-100" id="ModalStockQty"></label>
+                    </div>
+
+                    <div class="col-md-3 text-start">
+                       
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover text-center" id="StockCardTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>วันที่</th>
+                                <th>เลขที่ใบรับของ</th>
+                                <th>รับ</th>
+                                <th>จ่าย</th>
+                                <th>คงเหลือ</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts {
     <script src="~/dist/libs/litepicker/dist/litepicker.js"></script>
-
     <script>
-        document.querySelectorAll('.DateInput').forEach(function (el) {
-            new Litepicker({
-                element: el,
-                format: 'DD/MM/YYYY',
-                lang: 'th',
-                autoApply: true,
-                dropdowns: {
-                    minYear: 2000,
-                    maxYear: new Date().getFullYear() + 5,
-                    months: true,
-                    years: true
-                },
-                setup: (picker) => {
-                    picker.on('render', () => {
-                        // เพิ่ม class สำหรับแต่งสีเอง
-                        document.querySelectorAll('.litepicker').forEach(el => {
-                            el.classList.add('custom-datepicker-style');
-                        });
-                    });
-                }
+        $(document).ready(function () {
+
+            // ===== Inventory Modal =====
+            $(".btn-show-inventory").on("click", function () {
+                let codeId = $(this).data("code"); 
+                // reset UI
+                $("#ModalCodeid").text("");
+                $("#ModalQty").text("");
+                $("#InventoryTable tbody").html("<tr><td colspan='5'>Loading...</td></tr>");
+
+                $.ajax({
+                    url:'@Url.Action("GetInventory", "ReceivingEq")', 
+                    type: "GET",
+                    data: { codeID: codeId },
+                    success: function (res) {
+                        debugger;
+                        if (res && res.success) {
+                            // fill header info
+                            $("#ModalCodeid").text(res.data.codeName);
+                            $("#ModalQty").text(res.data.totalQty);
+
+                            // fill table
+                            let rows = "";
+                            $.each(res.data.items, function (i, row) {
+                                rows += `
+                                    <tr>
+                                        <td>${row.serialNo}</td>
+                                        <td>${row.locationID}</td>
+                                        <td class="text-end">${row.qtyReceived}</td>
+                                        <td>${row.lotNo}</td>
+                                        <td>${row.expireDate}</td>
+                                    </tr>`;
+                            });
+                            $("#InventoryTable tbody").html(rows);
+                        } else {
+                            $("#InventoryTable tbody").html("<tr><td colspan='5'>ไม่พบข้อมูล</td></tr>");
+                        }
+                    },
+                    error: function () {
+                        $("#InventoryTable tbody").html("<tr><td colspan='5' class='text-danger'>โหลดข้อมูลไม่สำเร็จ</td></tr>");
+                    }
+                });
             });
+
+            // ===== Stock Card Modal =====
+            $(".btn-show-stock").on("click", function () {
+                let codeId = $(this).data("code");
+
+                // reset UI
+                $("#ModalStockCodeid").text("");
+                $("#ModalStockQty").text("");
+                $("#StockCardTable tbody").html("<tr><td colspan='5'>Loading...</td></tr>");
+
+                $.ajax({ 
+                    url:'@Url.Action("GetStockCard", "ReceivingEq")',  
+                    type: "GET",
+                    data: { codeID: codeId },
+                    success: function (res) {
+                        if (res && res.success) {
+                            // fill header info
+                            $("#ModalStockCodeid").text(res.data.codeName);
+                            $("#ModalStockQty").text(res.data.totalQty);
+
+                            // fill table
+                            let rows = "";
+                            $.each(res.data.items, function (i, row) {
+                                rows += `
+                                    <tr>
+                                        <td>${row.transDate}</td>
+                                        <td>${row.refNo}</td>
+                                        <td class="text-end">${row.qtyIn  }</td>
+                                        <td class="text-end">${row.qtyOut }</td>
+                                        <td class="text-end">${row.balance}</td>
+                                    </tr>`;
+                            });
+                            $("#StockCardTable tbody").html(rows);
+                        } else {
+                            $("#StockCardTable tbody").html("<tr><td colspan='5'>ไม่พบข้อมูล</td></tr>");
+                        }
+                    },
+                    error: function () {
+                        $("#StockCardTable tbody").html("<tr><td colspan='5' class='text-danger'>โหลดข้อมูลไม่สำเร็จ</td></tr>");
+                    }
+                });
+            });
+
         });
-      var status = "";
+    </script>  
+    <script> 
+        var status = "";
         function SearchByPage(pager) {
-           let critiria = $("#critiria").val();
-             let usestatus = $("#usestatus").val();
-             var url = '@Url.Action("ListMasterProduct", "Sticker")?critiria=' + critiria + "&usestatus=" + usestatus + "&page=" + pager ;
-             ShowLoading();
-             window.location.replace(url);
+                let critiria = $("#critiria").val();
+                let usestatus = $("#usestatus").val();
+                var url = '@Url.Action("ListMasterProduct", "Sticker")?critiria=' + critiria + "&usestatus=" + usestatus + "&page=" + pager ;
+                ShowLoading();
+                window.location.replace(url);
         }
 
 

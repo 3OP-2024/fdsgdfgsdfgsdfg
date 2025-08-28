@@ -378,7 +378,7 @@ namespace Receiving.Data
         {
             try
             {
-                var items = RepositoryContext.HR_PR_EquipmentInventory  
+                var items = RepositoryContext.HR_PR_EquipmentInventory.Include(d=>d.HR_PR_EquipmentLocation)  
                                                                     .Where(l =>
                                                                          (l.RunningID.Contains(search.RunningID) || string.IsNullOrEmpty(search.RunningID))
                                                                         && (l.SerialNo.Contains(search.RequestNo) || string.IsNullOrEmpty(search.RequestNo))

@@ -71,7 +71,9 @@
                 background-color: #000; /* จุดข้างในเป็นสีดำตอนเลือก */
                 border-color: #000;
             }
-
+        #tblDetail td textarea[name*="RemarkOfEditer"] {
+            min-width: 300px; /* กำหนดความกว้างขั้นต่ำ */
+        }
     </style>
 }
 <div class="container-xl">
@@ -105,7 +107,15 @@
                 <div class="col-md-2 col-12">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ti ti-calendar"></i></span>
-                        <input type="text" class="form-control DateInput" placeholder="DD/MM/YYYY" name="ReceiveDate" value="@Model?.ReceivingDateTH" @Disable autocomplete="off">
+                        <input type="text"
+                               class="form-control DateInput"
+                               placeholder="DD/MM/YYYY"
+                               name="ReceiveDate"
+                               value="@(string.IsNullOrEmpty(Model?.ReceivingDateTH) ? DateTime.Now.ToString("dd/MM/yyyy") : Model.ReceivingDateTH)"
+                               @Disable
+                               autocomplete="off">
+
+                        @*<input type="text" class="form-control DateInput" placeholder="DD/MM/YYYY" name="ReceiveDate" value="@Model?.ReceivingDateTH" @Disable autocomplete="off">*@
                     </div>
                 </div>
             </div>
@@ -233,34 +243,41 @@
                         {
                             @foreach (var d in Model?.HR_PR_EquipmentReceivingDetail)
                             {
-                                <tr class="text-center">
-                                    <td>@d.ItemOrder</td>
-                                    <td class="text-left">@d?.CodeID</td>
-                                    <td class="text-left">@d?.CodeName</td>
-                                    <td class="text-right">@d?.Quantity</td>
-                                    <td class="text-right">
-                                        <input type="number" class="form-control form-control-sm text-right" @Disable  value="@d?.QtyReceived" name="qtyReceived">
-                                    </td>
-                                    <td>@d?.Unit</td>
-                                    <td class="text-right">
-                                        <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="unitPrice" value="@d?.Unitprice">
-                                    </td>
-                                    <td class="text-right">
-                                        <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="amount" value="@d?.Amount">
-                                    </td>
-                                    <td class="text-right">
-                                        <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable  name="vatAmount" value="@d?.VatAmount">
-                                    </td>
-                                    <td class="text-right">@d?.HR_PR_EquipmentClaimRate?.ClaimRateNumber</td>
-                                    <td>
-                                        <input type="text" class="form-control form-control-sm" name="lotNo" @Disable  value="@d?.LotNo">
-                                    </td>
-                                    <td>
-                                        <input type="text" class="form-control DateInput form-control-sm DateInput" @Disable  name="expireDate" placeholder="DD/MM/YYYY" id="@d?.CodeID" autocomplete="off" value="@d?.ExpireDateTH">
-                                    </td>
-                                    <td>@d?.Remark</td>
-                                    <td hidden>@d?.ClaimRateID</td>
-                                </tr>
+                        <tr class="text-center">
+                            <td>@d.ItemOrder</td>
+                            <td class="text-left">@d?.CodeID</td>
+                            <td class="text-left">@d?.CodeName</td>
+                            <td class="text-right">@d?.Quantity</td>
+                            <td class="text-right">
+                                <input type="number" class="form-control form-control-sm text-right" @Disable value="@d?.QtyReceived" name="qtyReceived">
+                            </td>
+                            <td>@d?.Unit</td>
+                            <td class="text-right">
+                                <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable name="unitPrice" value="@d?.Unitprice">
+                            </td>
+                            <td class="text-right">
+                                <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable name="amount" value="@d?.Amount">
+                            </td>
+                            <td class="text-right">
+                                <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable name="vatAmount" value="@d?.VatAmount">
+                            </td>
+                            <td class="text-right">@d?.HR_PR_EquipmentClaimRate?.ClaimRateNumber</td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" name="lotNo" @Disable value="@d?.LotNo">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control DateInput form-control-sm DateInput" @Disable name="expireDate" placeholder="DD/MM/YYYY" id="@d?.CodeID" autocomplete="off" value="@d?.ExpireDateTH">
+                            </td>
+                            <td>
+                                <textarea  @Disable class="form-control w-100"
+                                          id="@d?.CodeID"
+                                          name="RemarkOfEditer"
+                                          rows="2" maxlength="200"
+                                          style="resize: vertical; overflow:auto;">@d.Remark</textarea>
+                                @*<input class="form-control w-100" type="text" id="HR_PR_InternshipTimeEmpDetails[@irow].RemarkOfEditer" name="HR_PR_InternshipTimeEmpDetails[@irow].RemarkOfEditer" value="@item.RemarkOfEditer" maxlength="200" />*@
+                            </td>
+                            <td hidden>@d?.ClaimRateID</td>
+                        </tr>
                             }
                         }
 
@@ -388,25 +405,25 @@
                         <input type="text" class="form-control" name="VendorSearchText" id="VendorSearchText" autocomplete="off">
                     </div>
 
-                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่รับของ</label>
+                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">แผนก</label>
                     <div class="col-md-4 col-12">
-                        <input type="text" class="form-control DateInput" name="ReceiveDateSearch" placeholder="DD/MM/YYYY" autocomplete="off">
-                    </div>
+                        <select class="form-select" name="DepartmetModal" id="DepartmetModal" asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
+                     </div>
                 </div>
 
                 <div class="row mb-3 align-items-center">
-                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่เขียนใบขอซื้อ</label>
+                    <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่ขอซื้อ</label>
                     <div class="col-md-4 col-12 mb-2 mb-md-0">
                         <div class="input-group">
                             <span class="input-group-text"><i class="ti ti-calendar"></i></span>
-                            <input type="text" class="form-control DateInput" name="RequestDateStart" placeholder="DD/MM/YYYY" autocomplete="off">
+                            <input type="text" class="form-control DateInput" name="RequestDateStart" id="RequestDateStart" placeholder="DD/MM/YYYY" autocomplete="off">
                         </div>
                     </div>
 
                     <div class="col-md-4 col-12 mb-2 mb-md-0">
                         <div class="input-group">
                             <span class="input-group-text"><i class="ti ti-calendar"></i></span>
-                            <input type="text" class="form-control DateInput" name="RequestDateEnd" placeholder="DD/MM/YYYY" autocomplete="off">
+                            <input type="text" class="form-control DateInput" name="RequestDateEnd" id="RequestDateEnd" placeholder="DD/MM/YYYY" autocomplete="off">
                         </div>
                     </div>
 
@@ -504,7 +521,10 @@
                    /// ClaimRateID: row.find("td:eq(9)").text().trim(),
                     LotNo: row.find("input[name='lotNo']").val(),
                     ExpireDate: parseDate(row.find("input[name='expireDate']").val()), // แปลงเป็น ISO ถ้าต้องการ
-                    Remark: row.find("td:eq(12)").text().trim(),
+                    Remark: row.find("input[name='RemarkOfEditer']").val(), 
+                    // อ่านค่าจาก row
+                    remark: row.find("textarea[name='RemarkOfEditer']").val() , 
+                    //Remark: row.find("td:eq(12)").text().trim(), RemarkOfEditer
                     ClaimRateID: row.find("td:eq(13)").text().trim()
                 };
                 details.push(detailItem);
@@ -589,6 +609,10 @@
 
                                        if (response && response.length > 0) {
                         $.each(response, function (index, item) {
+                            var remark = item.remark ? item.remark : '';
+                            var html = '<textarea  name = "RemarkOfEditer" style = "resize: vertical; overflow:auto;"  rows = "2" maxlength = "200" class="form-control">' + remark + '</textarea>';
+                            
+
                             let row = `
                                 <tr class="text-center">
                                     <td>${item.itemOrder || ''}</td>
@@ -597,7 +621,7 @@
                                     <td class="text-right">${item.quantity || ''}</td>
                                     <td class="text-right">
                                         <input type="number" class="form-control form-control-sm text-right"
-                                               name="qtyReceived"  >
+                                               name="qtyReceived" value="${item.quantity || ''}"  >
                                     </td>
                                     <td>${item.unit || ''}</td>
                                     <td class="text-right">
@@ -621,7 +645,7 @@
                                         <input type="text" class="form-control DateInput form-control-sm"
                                                name="expireDate" placeholder="DD/MM/YYYY" id="${item.requestNo + item.itemOrder}" value="${item.expireDate || ''}">
                                     </td>
-                                    <td>${item.remark || ''}</td>
+                                    <td>${html}</td>
                                     <td hidden>${item.claimRateID || ''}</td>
                                 </tr>
                             `;
@@ -697,6 +721,9 @@
                  var url = '@Url.Action("FindePrItem", "ReceivingEq")';
                  var data = {
                      'critiria': $("#VendorSearchText").val(),
+                     'StartFrom': $("#RequestDateStart").val(),
+                     'StartTo': $("#RequestDateEnd").val(),
+                     'DepartmentID': $("#DepartmetModal").val(),
                  };
                   $("#vendorTable > tbody").empty();
                   $.ajax({

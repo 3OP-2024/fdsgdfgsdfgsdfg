@@ -60,9 +60,9 @@
                                 <button type="submit" class="btn btn-info me-1">
                                     <i class="ti ti-search"></i> ค้นหา
                                 </button>
-                                <a href="/" class="btn btn-outline-danger">
-                                    <i class="ti ti-x"></i> ปิดหน้านี้
-                                </a>
+                                <a href='@Url.Action("Index","Home")' class="btn btn-outline-danger" role="button"><i class="mdi mdi-close-circle-outline"></i> ปิดหน้านี้</a>
+
+
                                 <a href='@Url.Action("CreateZone","ReceivingEq", new { TypeID = "001" })' class="btn btn-orange me-1" role="button">  <i class="ti ti-package"></i> เพิ่ม</a>
 
                             </div>

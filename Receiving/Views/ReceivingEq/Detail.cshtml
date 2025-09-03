@@ -1,12 +1,12 @@
-﻿@model  Receiving.Models.HR_PR_EquipmentReceivingHeader
+﻿@model Receiving.Models.HR_PR_EquipmentReceivingHeader
 
-@{  string Disable = "";
+@{ string Disable = "";
     if (Model?.SYS_Status != "P01" && !string.IsNullOrEmpty(Model?.RunningID))
     {
         Disable = "disabled";
     }
     Receiving.Models.Search Search = ViewBag.Search ?? null;
-    if (!string.IsNullOrEmpty( Model?.ReceivingType)) { Search.TypeID = Model?.ReceivingType; }
+    if (!string.IsNullOrEmpty(Model?.ReceivingType)) { Search.TypeID = Model?.ReceivingType; }
     var approve1 = (Model?.SYS_Status == "P02" && ViewBag.approve1 == true ? false : true);
 
 }
@@ -59,6 +59,7 @@
             border-bottom-width: var(--tblr-border-width);
             box-shadow: inset 0 0 0 9999px var(--tblr-table-bg-state, var(--tblr-table-bg-type, var(--tblr-table-accent-bg)));
         }
+
         .form-check-input[type=radio] {
             border-radius: 50%;
             border: 2px solid #000; /* เส้นวงกลมสีดำ */
@@ -71,6 +72,7 @@
                 background-color: #000; /* จุดข้างในเป็นสีดำตอนเลือก */
                 border-color: #000;
             }
+
         #tblDetail td textarea[name*="RemarkOfEditer"] {
             min-width: 300px; /* กำหนดความกว้างขั้นต่ำ */
         }
@@ -126,16 +128,16 @@
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ti ti-barcode"></i></span>
-                        <input type="text" class="form-control bg-muted" readonly id="vendorID" name="VendorNo" value="@Model?.VendorID"   placeholder="รหัสผู้ขาย">
+                        <input type="text" class="form-control bg-muted" readonly id="vendorID" name="VendorNo" value="@Model?.VendorID" placeholder="รหัสผู้ขาย">
                     </div>
                 </div>
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
-                    @if (String.IsNullOrEmpty(Model?.RunningID))
-                    {
+                    @*@if (String.IsNullOrEmpty(Model?.RunningID))
+                    {*@
                         <button type="button" class="btn btn-info w-100" id="btnOpenModal">
                             <i class="ti ti-search"></i> ค้นหา
                         </button>
-                    }
+                    @*}*@
 
                 </div>
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">เลขที่ใบขอซื้อ : <span class="text-danger">*</span></label>
@@ -150,7 +152,16 @@
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
                     <label class="form-control-plaintext" id="vendorName">@Model?.VendorName</label>
                 </div>
-                <div class="col-md-2 d-none d-md-block"></div>
+                <div class="col-md-1 d-none d-md-block text-end">ที่อยู่ :</div>
+                <div class="col-md-2 d-none d-md-block">
+                    <textarea @Disable class="form-control w-100"
+                              id="Address"
+                              name="Address"
+                              rows="2" maxlength="200"
+                              style="resize: vertical; overflow:auto;">@Model?.Address</textarea>
+                </div>
+
+
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">แผนกที่เขียนใบขอซื้อ: <span class="text-danger">*</span></label>
                 <div class="col-md-2 col-12">
                     <label class="form-control-plaintext" name="departmentName" id="departmentName">@Model?.V_HR_MT_Department?.DepartmentIDAndName</label>
@@ -183,7 +194,7 @@
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ti ti-receipt-tax"></i></span>
-                        <input type="text" class="form-control" value="@Model?.TaxInvNo" name="TaxInvNo"  @Disable autocomplete="off">
+                        <input type="text" class="form-control" value="@Model?.TaxInvNo" name="TaxInvNo" @Disable autocomplete="off">
                     </div>
                 </div>
                 <div class="col-md-2 d-none d-md-block"></div>
@@ -191,7 +202,7 @@
                 <div class="col-md-2 col-12">
                     <div class="input-group">
                         <span class="input-group-text"><i class="ti ti-calendar"></i></span>
-                        <input type="text" class="form-control DateInput" value="@Model?.TaxInvDateTH" @Disable  placeholder="DD/MM/YYYY" name="TaxInvDate" autocomplete="off">
+                        <input type="text" class="form-control DateInput" value="@Model?.TaxInvDateTH" @Disable placeholder="DD/MM/YYYY" name="TaxInvDate" autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -211,9 +222,8 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="ti ti-building-bank"></i></span>
                         @*<input type="text" class="form-control" name="Branch" value="@Model?.BranchID" @Disable autocomplete="off">*@
-                         <select id="Branch" name="Branch" class="form-select" asp-items="@ViewBag.Branch"> 
-                        </select>
-                        
+                        <select id="Branch" name="Branch" class="form-select" asp-items="@ViewBag.Branch"></select>
+
                     </div>
                 </div>
             </div>
@@ -261,7 +271,17 @@
                             <td class="text-right">
                                 <input type="number" step="0.01" class="form-control form-control-sm text-right" @Disable name="vatAmount" value="@d?.VatAmount">
                             </td>
-                            <td class="text-right">@d?.HR_PR_EquipmentClaimRate?.ClaimRateNumber</td>
+                            
+                            <td class="text-right">
+                                <select name="ClaimRate" class="form-select">
+                                    @foreach (var r in (IEnumerable<Receiving.Models.HR_PR_EquipmentClaimRate>)ViewBag.ClaimRate)
+                                    {
+                                        @: <option value="@r.ClaimRateID" @(r.ClaimRateID == d?.ClaimRateID ? "selected" : "" )>
+                                            @r.ClaimRateNumber
+                                        @: </option>
+                                    }
+                                </select>
+                            </td>
                             <td>
                                 <input type="text" class="form-control form-control-sm" name="lotNo" @Disable value="@d?.LotNo">
                             </td>
@@ -269,7 +289,7 @@
                                 <input type="text" class="form-control DateInput form-control-sm DateInput" @Disable name="expireDate" placeholder="DD/MM/YYYY" id="@d?.CodeID" autocomplete="off" value="@d?.ExpireDateTH">
                             </td>
                             <td>
-                                <textarea  @Disable class="form-control w-100"
+                                <textarea @Disable class="form-control w-100"
                                           id="@d?.CodeID"
                                           name="RemarkOfEditer"
                                           rows="2" maxlength="200"
@@ -304,7 +324,7 @@
                                     <label class="form-check-label text-success fw-bold" for="approve1">อนุมัติ</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" disabled="@(approve1)"  name="Approve1Status" id="reject1" value="N"
+                                    <input class="form-check-input" type="radio" disabled="@(approve1)" name="Approve1Status" id="reject1" value="N"
                                            @(Model?.Approve1Status == "N" ? "checked" : "")>
                                     <label class="form-check-label text-danger fw-bold" for="reject1">ไม่อนุมัติ</label>
                                 </div>
@@ -408,7 +428,7 @@
                     <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">แผนก</label>
                     <div class="col-md-4 col-12">
                         <select class="form-select" name="DepartmetModal" id="DepartmetModal" asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
-                     </div>
+                    </div>
                 </div>
 
                 <div class="row mb-3 align-items-center">
@@ -458,21 +478,21 @@
     </div>
 </div>
 
-
+ 
 
 @section scripts {
     <script src="~/dist/libs/litepicker/dist/litepicker.js"></script>
     <script>
 
-       
-        function Approve(id,sys){ 
+
+        function Approve(id,sys){
                 let status = $("input[name='Approve1Status']:checked").val();
                 let remark = $("#Approve1Remark").val();
-                let runningId = id; // สมมติว่า id อยู่ใน span หรือ hidden input 
+                let runningId = id; // สมมติว่า id อยู่ใน span หรือ hidden input
                 if (!status) {
                     showWarning("กรุณาเลือกสถานะการอนุมัติ");
                     return;
-                } 
+                }
                 $.ajax({
                     url: '@Url.Action("Approve", "ReceivingEq")',
                     type: "POST",
@@ -483,8 +503,8 @@
                         Approve1Remark: remark
                     },
                     success: function (res) {
-                        if (res.success) { 
-                            var link = '@Url.Action("List", "ReceivingEq", new { statusPage = "P01"  })'; 
+                        if (res.success) {
+                            var link = '@Url.Action("List", "ReceivingEq", new { statusPage = "P01"  })';
                             showSuccess("บันทึกสำเร็จ", link);
                         } else {
                             showWarning("เกิดข้อผิดพลาด: " + res.error);
@@ -495,7 +515,7 @@
                     }
                 });
         };
-   
+
 
         function Save(s) {
             var send = false;
@@ -521,11 +541,9 @@
                    /// ClaimRateID: row.find("td:eq(9)").text().trim(),
                     LotNo: row.find("input[name='lotNo']").val(),
                     ExpireDate: parseDate(row.find("input[name='expireDate']").val()), // แปลงเป็น ISO ถ้าต้องการ
-                    Remark: row.find("input[name='RemarkOfEditer']").val(), 
-                    // อ่านค่าจาก row
-                    remark: row.find("textarea[name='RemarkOfEditer']").val() , 
+                    Remark: row.find("textarea[name='RemarkOfEditer']").val() ,
                     //Remark: row.find("td:eq(12)").text().trim(), RemarkOfEditer
-                    ClaimRateID: row.find("td:eq(13)").text().trim()
+                    ClaimRateID: row.find("select[name='ClaimRate']").val()
                 };
                 details.push(detailItem);
             });
@@ -545,6 +563,7 @@
                 VendorID: $("#vendorID").val(),
                 VendorName: $("#vendorName").html(),
                 ReceivingType: $("#ReceivingType").val(),
+                Address: $("#Address").val(),
                 ReceivingDate: parseDate($("input[name='ReceiveDate']").val()),
                 HR_PR_EquipmentReceivingDetail: details,
                 send: send,
@@ -561,7 +580,7 @@
                 },
                 success: function (res) {
                       if (res.success) {
-                        let link = ""; 
+                        let link = "";
                         if (send) {
                             link = '@Url.Action("List", "ReceivingEq", new { statusPage = "P01" })';
                         } else if ($("#RunningID").html() != "") {
@@ -579,8 +598,9 @@
                     ShowLoading(false);
                 }
             });
-        } 
+        }
 
+      var claimRateOptions = @Html.Raw(Json.Serialize(ViewBag.ClaimRateS));
 
 
         function selectDetail(btn) {
@@ -596,6 +616,11 @@
             $("#departmentName").html(departmentName);
             $("#departmentID").val(departmentID);
 
+            let optionsHtml = claimRateOptions.map(opt => {
+                 return `<option value="${opt.value}">${opt.text}</option>`;
+            }).join("");
+
+
             console.log(requestNo);
             var url = '@Url.Action("GetDetail", "ReceivingEq")';
 
@@ -603,16 +628,17 @@
                 url: url, // URL ของ Controller Action ที่จะดึงข้อมูล
                 type: 'GET',
                 data: { requestNo: requestNo },
-                success: function (response) {
+                success: function (response) { 
+                    
                     let tbody = $('#tblDetail tbody');
-                    tbody.empty(); // ล้างข้อมูลเก่า
+                    //tbody.empty(); // ล้างข้อมูลเก่า
 
                                        if (response && response.length > 0) {
                         $.each(response, function (index, item) {
                             var remark = item.remark ? item.remark : '';
                             var html = '<textarea  name = "RemarkOfEditer" style = "resize: vertical; overflow:auto;"  rows = "2" maxlength = "200" class="form-control">' + remark + '</textarea>';
-                            
 
+ 
                             let row = `
                                 <tr class="text-center">
                                     <td>${item.itemOrder || ''}</td>
@@ -636,8 +662,12 @@
                                         <input type="number" step="0.01" class="form-control form-control-sm text-right"
                                                name="vatAmount" value="${item.vatAmount?.toFixed(2) || '0.00'}">
                                     </td>
-                                    <td class="text-right">${item.claimRateNumber || ''}</td>
-                                    <td>
+                                     <td >
+                                             <select name="ClaimRate" class="form-select form-select-sm">
+                                                ${optionsHtml}
+                                             </select>
+                                    </td>
+                                     <td>
                                         <input type="text" class="form-control form-control-sm"
                                                name="lotNo"  >
                                     </td>
@@ -649,6 +679,7 @@
                                     <td hidden>${item.claimRateID || ''}</td>
                                 </tr>
                             `;
+                           
                             tbody.append(row);
                         });
                     } else {

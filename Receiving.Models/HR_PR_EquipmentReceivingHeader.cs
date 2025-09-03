@@ -203,6 +203,7 @@ namespace Receiving.Models
         [StringLength(1000)]
         public string Approve2Remark { get; set; }
         public string RequestNo { get; set; }
+        public string Address { get; set; }
 
         public DateTime? ReceivingDate { get; set; }
         public string ReceivingDateTH
@@ -243,6 +244,7 @@ namespace Receiving.Models
             TaxIDInv = item.TaxIDInv;
 
             BranchID = item.BranchID;
+            Address = item.Address;
             if (send)
             {
                 SYS_Status = "P02";

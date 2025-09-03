@@ -36,7 +36,7 @@ namespace Receiving.Data
             try
             { 
 
-                var items = RepositoryContext.HR_PR_EquipmentClaimRate.Include(d=>d.V_HR_MT_Department).Where(l =>
+                var items = RepositoryContext.HR_PR_EquipmentClaimRate.Where(l =>
                                                                          (l.ClaimRateID.Contains(search.RunningID)   ||  string.IsNullOrEmpty(search.RunningID))   
                                                                     );
                 bool usestatus = false;

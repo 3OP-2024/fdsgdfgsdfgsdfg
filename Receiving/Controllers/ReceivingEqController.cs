@@ -118,11 +118,11 @@ namespace Receiving.Controllers
                                                            (e.RequestNo.Equals(requestNo))  
 
                                                          ).ToList();
-            result.ToList().ForEach(l => {
-                    l.ClaimRateNumber = _repo.ClaimRate.FindSingle(g => g.DepartmentID == l.DepartmentID)?.ClaimRateNumber;
-                    l.ClaimRateID = _repo.ClaimRate.FindSingle(g => g.DepartmentID == l.DepartmentID)?.ClaimRateID;
+            //result.ToList().ForEach(l => {
+            //        l.ClaimRateNumber = _repo.ClaimRate.FindSingle(g => g.DepartmentID == l.DepartmentID)?.ClaimRateNumber;
+            //        l.ClaimRateID = _repo.ClaimRate.FindSingle(g => g.DepartmentID == l.DepartmentID)?.ClaimRateID;
 
-            });
+            //});
 
             return Json(result);
 
@@ -193,7 +193,9 @@ namespace Receiving.Controllers
                       .Include(x => x.V_HR_MT_Department)) ?? null;
             ViewBag.Search = item; 
              ViewBag.Branch = new SelectList(_repo.Branch.FindByCondition(l=>l.UsageStatus == true), "BranchID", "BranchIDAndName", result?.BranchID);
-             ViewBag.ClaimRate = new SelectList(_repo.ClaimRate.FindByCondition(l=>l.UsageStatus == true), "ClaimRateID", "ClaimRateNumber");
+             ViewBag.ClaimRate = _repo.ClaimRate.FindByCondition(l => l.UsageStatus == true).ToList();
+            ViewBag.ClaimRateS = new SelectList(_repo.ClaimRate.FindByCondition(l => l.UsageStatus == true), "ClaimRateID", "ClaimRateNumber");
+
             var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true).ToList();
 
             ViewBag.DepartmentID = new SelectList(MTDepartment, "DepartmentID", "DepartmentIDAndName" );

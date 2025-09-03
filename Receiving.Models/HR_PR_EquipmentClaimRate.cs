@@ -24,20 +24,7 @@ namespace Receiving.Models
 
         public DateTime? EditDate { get; set; }
 
-     
-        [StringLength(6)]
-        public string DepartmentID { get; set; }
-        [ForeignKey("DepartmentID")]
-        public virtual V_HR_MT_Department V_HR_MT_Department { get; set; }
-        public string DepartmentID4Name
-        {
-            get
-            {
-                if (V_HR_MT_Department == null) { return ""; }
-                return ((V_HR_MT_Department.DepartmentID.Length < 4 ? V_HR_MT_Department?.DepartmentID + "-" + V_HR_MT_Department?.Division : V_HR_MT_Department.DepartmentID.Substring(0, 4) + "-" + V_HR_MT_Department.Department));
-            }
-        }
-
+      
 
         public void Add(string userId, string userName)
         {
@@ -51,8 +38,7 @@ namespace Receiving.Models
             EditName = userName;
             EditID = userId;
             UsageStatus = item.UsageStatus;
-            ClaimRateNumber = item.ClaimRateNumber;
-            DepartmentID = item.DepartmentID;
+            ClaimRateNumber = item.ClaimRateNumber; 
         }
 
         public string EditDateTH

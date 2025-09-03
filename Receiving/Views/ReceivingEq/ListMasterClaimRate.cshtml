@@ -87,7 +87,7 @@
                             <thead>
                                 <tr class="text-center">
                                     <th>รหัส</th>
-                                    <th>แผนก</th>
+                                   
                                     <th>จำนวน</th>
                                     <th>สถานะ</th>
                                     <th>ผู้บันทึก</th>
@@ -103,9 +103,7 @@
                                             <td class="text-left  ">
                                                 @item?.ClaimRateID
                                             </td>
-                                            <td class="text-left  ">
-                                                @item?.DepartmentID4Name
-                                            </td>
+                                            
                                             <td class="text-left  ">
                                                 @item?.ClaimRateNumber
                                             </td>
@@ -127,7 +125,7 @@
                                                 <a href="javascript:void(0);"
                                                    class="btn btn-icon btn-outline-primary btn-sm"
                                                    title="แก้ไข"
-                                                   onclick="Edit('@item.ClaimRateID','@item?.ClaimRateNumber','@item?.UsageStatus' ,'@item?.DepartmentID')">
+                                                   onclick="Edit('@item.ClaimRateID','@item?.ClaimRateNumber','@item?.UsageStatus' )">
                                                     <i class="ti ti-edit"></i>
                                                 </a>
 
@@ -208,9 +206,7 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">แผนก</label>
-                    <select class="form-select" name="ClaimRateDep" id="ClaimRateDep"  asp-items="@ViewBag.DepartmentID"> 
-                    </select>
+                  
                 </div>
 
             </div>
@@ -238,7 +234,6 @@
                 ClaimRateID: $("#txtID").text(),
                 ClaimRateNumber: $("#txtName").val(),
                 UsageStatus: $("#selStatus").val() === "1", // แปลงเป็น bool
-                DepartmentID: $("#ClaimRateDep").val() , // แปลงเป็น bool
                 status: s
             };
 
@@ -266,14 +261,13 @@
             $("#selStatus").val("1");
             $("#txtID").text("");
             $("#txtName").val("");
-            $("#ClaimRateDep").val("");
             $("#modal-form").modal("show");
 
 
 
 
         }
-        function Edit(id, n, usestatus,DepartmentID) {
+        function Edit(id, n, usestatus) {
             $("#modal-form").modal("show");
 
             if (usestatus == "True") {
@@ -284,8 +278,6 @@
             }
             $("#txtID").text(id);
             $("#txtName").val(n);
-            $("#ClaimRateDep").val(DepartmentID);
-
         }
 
         document.querySelectorAll('.DateInput').forEach(function (el) {

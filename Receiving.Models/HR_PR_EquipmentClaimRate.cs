@@ -15,6 +15,7 @@ namespace Receiving.Models
         public int? ClaimRateNumber { get; set; }
 
         public bool? UsageStatus { get; set; }
+        public bool? DefaultItem { get; set; }
 
         [StringLength(10)]
         public string EditID { get; set; }
@@ -38,7 +39,8 @@ namespace Receiving.Models
             EditName = userName;
             EditID = userId;
             UsageStatus = item.UsageStatus;
-            ClaimRateNumber = item.ClaimRateNumber; 
+            ClaimRateNumber = item.ClaimRateNumber;
+            DefaultItem = item.DefaultItem; 
         }
 
         public string EditDateTH

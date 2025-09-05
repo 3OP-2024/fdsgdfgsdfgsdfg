@@ -63,7 +63,7 @@ namespace Receiving.Controllers
             return View();
         }
 
-        public IActionResult FindePrItem(string critiria, string DepartmentID, string  StartFrom , string  StartTo)
+        public IActionResult FindePrItem(string critiria, string DepartmentID, string  StartFrom , string  StartTo , string RequestNo)
         {
 
             var result = _repo.VWH
@@ -73,6 +73,7 @@ namespace Receiving.Controllers
                             e.ShopID.StartsWith(critiria) ||
                             e.CodeName.StartsWith(critiria))
                             &&(string.IsNullOrEmpty(DepartmentID) || e.DepartmentID.Contains(DepartmentID))
+                            &&(string.IsNullOrEmpty(RequestNo) || e.RequestNo.Contains(RequestNo))
                         )
                         .GroupBy(e => new
                         {
@@ -110,8 +111,22 @@ namespace Receiving.Controllers
             return Json(result);
 
         }
+        [HttpGet] // ใช้ HttpGet เพราะเป็นคำขอข้อมูล
+        public ActionResult SearchProduct(string term)
+        {
+            // จำลองข้อมูลสินค้าจากฐานข้อมูล (ในความเป็นจริงจะดึงจาก Database)
+        
 
-          public IActionResult GetDetail(string requestNo)
+            // ค้นหาสินค้าที่ตรงกับคำค้นหา (term)
+            var results = _repo.VWH.FindByCondition(p =>
+                p.Code.ToLower().Contains(term.ToLower()) ||
+                p.CodeName.ToLower().Contains(term.ToLower())
+            ).Select(l=> new { code = l.Code , name = l.CodeName }).ToList();
+
+            // ส่งข้อมูลกลับในรูปแบบ JSON
+            return Json(results);
+        }
+        public IActionResult GetDetail(string requestNo)
         {
  
             var result = _repo.VWH.FindByCondition(e => 
@@ -195,6 +210,7 @@ namespace Receiving.Controllers
              ViewBag.Branch = new SelectList(_repo.Branch.FindByCondition(l=>l.UsageStatus == true), "BranchID", "BranchIDAndName", result?.BranchID);
              ViewBag.ClaimRate = _repo.ClaimRate.FindByCondition(l => l.UsageStatus == true).ToList();
             ViewBag.ClaimRateS = new SelectList(_repo.ClaimRate.FindByCondition(l => l.UsageStatus == true), "ClaimRateID", "ClaimRateNumber");
+            ViewBag.ClaimRateSDefault = _repo.ClaimRate.FindByCondition(l => l.DefaultItem == true).FirstOrDefault()?.ClaimRateID;
 
             var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true).ToList();
 
@@ -223,8 +239,10 @@ namespace Receiving.Controllers
                             var id = _repo.Inventory.GetRunning();
                             var invetoryList = new List<HR_PR_EquipmentInventory>();
                             foreach (var d in header.HR_PR_EquipmentReceivingDetail)
-                            {
-                                string credential = $"{DateTime.Now.Year.ToString("0000")}{DateTime.Now.Month.ToString("00")}{DateTime.Now.Day.ToString("00")}{id.ToString("00")}";
+                            { 
+                                
+                                var locations = _repo.ItemName.FindSingle(l => l.ItemID == d.CodeID)?.LocationID ?? ""; 
+                                 string credential = $"{DateTime.Now.Year.ToString("0000")}{DateTime.Now.Month.ToString("00")}{DateTime.Now.Day.ToString("00")}{id.ToString("00")}";
 
                                     invetoryList.Add(new HR_PR_EquipmentInventory {
                                         SerialNo = credential,
@@ -233,11 +251,14 @@ namespace Receiving.Controllers
                                         CodeName = d.CodeName,
                                         LotNo = d.LotNo,
                                         QtyReceived = d.QtyReceived,
-                                        ExpireDate = d.ExpireDate,
-                                        LocationID = "",
+                                        ExpireDate = d.ExpireDate, 
+                                       
+                                        LocationID = locations,
+                                        SYS_Status = "P01",
+
                                         RunningID = d.RunningID,
                                         Unit = d.Unit,
-                                        SYS_Status = "P01",
+                                      
                                         EditID = user.UserID,
                                         EditName = user.UserName,
                                         EditDate = DateTime.Now,
@@ -351,7 +372,15 @@ namespace Receiving.Controllers
                 var old = _repo.Inventory.FindSingle(l => l.SerialNo == serialNo) ?? null;
                 if(old != null)
                 {
-                    old.SYS_Status = "P02";
+                    if(string.IsNullOrEmpty(old.CheckSheetNo))
+                    {
+                        old.SYS_Status = "P01";
+                    }
+                    else
+                    {
+                        old.SYS_Status = "P02";
+                    }
+                    
                     old.LocationID = locationId;
                     old.EditDate = DateTime.Now;
                     old.EditID = user.UserID;
@@ -603,6 +632,10 @@ namespace Receiving.Controllers
                     item.ClaimRateID = RunningIDStr; 
                     item.Add(user.UserID, user.UserName); 
                     _repo.ClaimRate.Create(item);
+                    if (item.DefaultItem == true)
+                    {
+                        _repo.ClaimRate.FindByCondition(l => l.ClaimRateID != item.ClaimRateID).ToList().ForEach(l => l.DefaultItem = false);
+                    }
 
                 }
                 else if (status == "E")
@@ -612,6 +645,10 @@ namespace Receiving.Controllers
 
                     old.Edit(user.UserID, user.UserName, item); 
                     _repo.ClaimRate.Update(old);
+                    if(item.DefaultItem == true)
+                    {
+                        _repo.ClaimRate.FindByCondition(l => l.ClaimRateID != old.ClaimRateID).ToList().ForEach(l => l.DefaultItem = false);
+                    }
                 }
                 else
                 {
@@ -784,7 +821,45 @@ namespace Receiving.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult SaveCheckSheetNo(string SerialNo , string CheckNo)
+        {
+            if (string.IsNullOrWhiteSpace(CheckNo))
+            {
+                return Json(new { success = false, message = "เลขที่ใบตรวจสอบไม่สามารถว่างได้" });
+            }
 
+            try
+            {
+
+                var old = _repo.Inventory.FindSingle(l => l.SerialNo == SerialNo) ?? null;
+                if (old != null)
+                {
+                    old.CheckSheetNo = CheckNo;
+                    if (string.IsNullOrEmpty(old.LocationID))
+                    {
+                        old.SYS_Status = "P01";
+                    }
+                    else
+                    {
+                        old.SYS_Status = "P02";
+                    }
+                    old.EditDate = DateTime.Now;
+                    old.EditID = user.UserID;
+                    old.EditName = user.UserName;
+                }
+
+
+                _repo.Inventory.Update(old);
+                _repo.Save();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
     }
 }

@@ -10,6 +10,7 @@ namespace Receiving.Models
     {
        
         public string RequestNo { get; set; }
+        public string ShopAddressNo { get; set; }
 
     
         public DateTime RequestDate { get; set; }

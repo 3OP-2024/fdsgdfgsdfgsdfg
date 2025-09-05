@@ -14,6 +14,7 @@ namespace Receiving.Models
 
         [StringLength(5)]
         public string ReceivingType { get; set; }
+        public string CheckSheetNo { get; set; }
 
         [StringLength(7)]
         public string CodeID { get; set; } 

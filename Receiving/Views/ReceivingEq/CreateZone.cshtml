@@ -129,11 +129,12 @@
     function addLocationRow() {
         const zoneValue = $("#CodeID").val();
         const rowCount = $("#tblLocations tbody tr").length + 1;
-        const locationNo = zoneValue + String(rowCount).padStart(2, "0");
+        //const locationNo = zoneValue + String(rowCount).padStart(2, "0");
+                //<td>${locationNo}</td>
 
         const row = `<tr >
         <td>${zoneValue}</td>
-        <td>${locationNo}</td>
+        <td><input type="text" class="form-control form-control-sm" name="locationNo" ></td>
         <td><input type="text" class="form-control form-control-sm" name="LocationName" placeholder="ชื่อ"></td>
         <td><input type="number" class="form-control form-control-sm" name="Capacity" placeholder="ความจุ"></td>
         <td>
@@ -187,7 +188,7 @@
         const tr = $(this);
         item.HR_PR_EquipmentLocation.push({
             ZoneID: $("#CodeID").val(),
-            LocationID: tr.find("td:eq(1)").text().trim(),
+            LocationID: tr.find("input[name='locationNo']").val(),// tr.find("td:eq(1)").text().trim(),
             LocationName: tr.find("input[name='LocationName']").val(),
             Capacity: tr.find("input[name='Capacity']").val(),
             UsageStatus: tr.find("select[name='LocationStatus']").val() === "1"
@@ -204,11 +205,6 @@
         success: function(res){
                if (res.success) {
                         let link =    '@Url.Action("CreateZone", "ReceivingEq")' + "?ID=" + res.id;
-                        @*if ($("#CodeID").val() != "") {
-                            link =  '@Url.Action("ListMasterZone", "ReceivingEq" )';
-                        } else {
-                            link = '@Url.Action("CreateZone", "ReceivingEq")' + "?ID=" + res.id;
-                        }*@
 
                         showSuccess("บันทึกสำเร็จ", link);
                     }

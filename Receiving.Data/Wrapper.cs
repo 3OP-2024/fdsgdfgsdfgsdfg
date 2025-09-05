@@ -11,10 +11,8 @@ namespace Receiving.Data
         public Wrapper(Context repositoryContext)
         {
             _repoContext = repositoryContext;
-        }
-
-        
-
+        } 
+        public IItemNameRepository ItemName => new  ItemNameRepository(_repoContext);
         public IVInventoryRepository VInventory => new VInventoryRepository(_repoContext);
         public ILocationRepository Location => new LocationRepository(_repoContext);
         public IStockCardRepository StockCard => new  StockCardRepository(_repoContext);

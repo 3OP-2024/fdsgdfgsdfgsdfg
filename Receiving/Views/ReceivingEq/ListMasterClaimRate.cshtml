@@ -89,6 +89,7 @@
                                     <th>รหัส</th>
                                    
                                     <th>จำนวน</th>
+                                    <th>Default</th>
                                     <th>สถานะ</th>
                                     <th>ผู้บันทึก</th>
                                     <th>แก้ไข</th>
@@ -108,6 +109,16 @@
                                                 @item?.ClaimRateNumber
                                             </td>
                                             <td class="text-center">
+                                                @if (item.DefaultItem == true)
+                                                {
+                                                    <i class="ti ti-check text-success"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="ti ti-x text-danger"></i>
+                                                }
+                                            </td>
+                                            <td class="text-center">
                                                 @if (item.UsageStatus == true)
                                                 {
                                                     <i class="ti ti-check text-success"></i>
@@ -125,7 +136,7 @@
                                                 <a href="javascript:void(0);"
                                                    class="btn btn-icon btn-outline-primary btn-sm"
                                                    title="แก้ไข"
-                                                   onclick="Edit('@item.ClaimRateID','@item?.ClaimRateNumber','@item?.UsageStatus' )">
+                                                   onclick="Edit('@item.ClaimRateID','@item?.ClaimRateNumber','@item?.UsageStatus' ,'@item?.DefaultItem')">
                                                     <i class="ti ti-edit"></i>
                                                 </a>
 
@@ -199,6 +210,13 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label">Default</label>
+                    <select class="form-select" name="defaultItem" id="defaultItem">
+                        <option value="1">ใช้งาน</option>
+                        <option value="0">ไม่ใช้งาน</option>
+                    </select>
+                </div> 
+                <div class="mb-3">
                     <label class="form-label">สถานะ</label>
                     <select class="form-select" name="Status" id="selStatus">
                         <option value="1">ใช้งาน</option>
@@ -234,6 +252,7 @@
                 ClaimRateID: $("#txtID").text(),
                 ClaimRateNumber: $("#txtName").val(),
                 UsageStatus: $("#selStatus").val() === "1", // แปลงเป็น bool
+                DefaultItem: $("#defaultItem").val() === "1", // แปลงเป็น bool
                 status: s
             };
 
@@ -258,6 +277,7 @@
 
         function Add(s) {
 
+            $("#defaultItem").val("0");
             $("#selStatus").val("1");
             $("#txtID").text("");
             $("#txtName").val("");
@@ -267,7 +287,7 @@
 
 
         }
-        function Edit(id, n, usestatus) {
+        function Edit(id, n, usestatus, defaultItem) {
             $("#modal-form").modal("show");
 
             if (usestatus == "True") {
@@ -275,6 +295,12 @@
             } else {
 
                 $("#selStatus").val("0");
+            }
+            if (defaultItem == "True") {
+                $("#defaultItem").val("1");
+            } else {
+
+                $("#defaultItem").val("0");
             }
             $("#txtID").text(id);
             $("#txtName").val(n);

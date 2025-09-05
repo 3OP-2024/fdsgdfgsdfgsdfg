@@ -15,6 +15,10 @@ namespace Receiving.Data
               : base(options)
         {
         }
+        public virtual DbSet<WH_MT_ItemName> WH_MT_ItemName { get; set; }
+        public virtual DbSet<WH_MT_Location> WH_MT_Location { get; set; }
+        public virtual DbSet<WH_MT_Zone> WH_MT_Zone { get; set; }
+        public virtual DbSet<WH_PR_Supplier> WH_PR_Supplier { get; set; }
         public virtual DbSet<V_HR_PR_EquipmentInventory> V_HR_PR_EquipmentInventory { get; set; }
         public virtual DbSet<HR_PR_EquipmentBranch> HR_PR_EquipmentBranch { get; set; }
         public virtual DbSet<HR_PR_EquipmentClaimRate> HR_PR_EquipmentClaimRate { get; set; }

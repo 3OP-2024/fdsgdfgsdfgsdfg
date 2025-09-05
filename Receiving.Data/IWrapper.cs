@@ -6,6 +6,7 @@ namespace Receiving.Data
 {
     public interface IWrapper
     {
+        IItemNameRepository ItemName { get; } 
          ILocationRepository Location { get; } 
         IClaimRateRepository ClaimRate { get; }
         IBranchRepository Branch { get; }

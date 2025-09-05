@@ -7,7 +7,29 @@ using System.Linq;
 using System.Text;
 
 namespace Receiving.Data
-{ 
+{
+
+
+
+    public interface IItemNameRepository : IRepository<WH_MT_ItemName>
+    {
+    }
+    public class ItemNameRepository : Repository<WH_MT_ItemName>, IItemNameRepository
+    {
+        public ItemNameRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+    }
+
+
+
+
+
+
+
+
+
 
     public interface IClaimRateRepository : IRepository<HR_PR_EquipmentClaimRate>
     {

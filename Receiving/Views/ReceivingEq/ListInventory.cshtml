@@ -124,6 +124,7 @@
                                     <th>จำนวน</th>
                                     <th>หน่วย</th>
                                     <th>วันหมดอายุ</th>
+                                    <th>เลขที่ใบตรวจสอบ</th>
                                     <th>Location</th>
                                     <th>เลขที่รับของ</th>
                                     <th>ผู้บันทึก</th>
@@ -165,6 +166,21 @@
                                             </td>
                                             <td class="text-left  ">
                                                 @item?.ExpireDate
+                                            </td>
+                                            <td class="text-left  ">
+                                                @if (string.IsNullOrEmpty(item?.CheckSheetNo))
+                                                {
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalCheckSheetNo"
+                                                            data-serial="@item.SerialNo">
+                                                        <i class="ti ti-map-pin-plus me-1"></i> Add เลขที่ใบตรวจสอบ
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    @item?.CheckSheetNo
+                                                }
                                             </td>
                                             <td class="text-left  ">
                                                 @if (string.IsNullOrEmpty(item?.LocationID))
@@ -257,23 +273,34 @@
                 </div>
 
                 <div id="locationList" class="d-flex flex-wrap gap-2">
-                    @*<button type="button" class="btn btn-outline-primary" onclick="saveLocationForRow('SERIAL001', 'LOC001')">
-                        LOC001 - Warehouse A
-                    </button>
-                    <button type="button" class="btn btn-outline-success" onclick="saveLocationForRow('SERIAL001', 'LOC002')">
-                        LOC002 - Warehouse B
-                    </button>
-                    <button type="button" class="btn btn-outline-warning" onclick="saveLocationForRow('SERIAL001', 'LOC003')">
-                        LOC003 - Warehouse C
-                    </button>*@
+                    
                 </div>
             </div>
 
             <div class="modal-footer">
-                <input type="hidden" id="selectedSerialNo" />
-                @*<button type="button" class="btn btn-primary" onclick="saveLocation()">
+                <input type="hidden" id="selectedSerialNo" /> 
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ปิด</button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modalCheckSheetNo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">ระบุ เลขที่ใบตรวจสอบ</label>
+                    <input type="text" id="CheckNo" class="form-control">
+                </div>
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <input type="hidden" id="selectedSerialNoCheckNo" />
+                <button type="button" class="btn btn-brown" onclick="SaveCheckNo();">
                     <i class="ti ti-device-floppy me-1"></i> บันทึก
-                </button>*@
+                </button>
                 <button type="button" class="btn btn-warning" data-bs-dismiss="modal">ปิด</button>
 
             </div>
@@ -287,37 +314,83 @@
 
 
    <script>
+       function SaveCheckNo() {
+           var serialNo = $('#selectedSerialNoCheckNo').val();
+           var checkNo = $('#CheckNo').val().trim();
+
+           // Validation
+           if (!checkNo) {
+               showWarning("กรุณากรอกเลขที่ใบตรวจสอบ");
+               $('#CheckNo').focus();
+               return;
+           }
+
+           // ส่ง AJAX ไป C# Controller
+           $.ajax({
+               url: '@Url.Action("SaveCheckSheetNo", "ReceivingEq")', // action สำหรับค้นหา Location 
+               type: 'POST',
+               data: { SerialNo: serialNo, CheckNo: checkNo }, // ไม่ต้อง JSON.stringify
+               dataType: "json",
+               success: function (response) {
+                   if (response.success) {
+                       showSuccess("บันทึกเรียบร้อยแล้ว");
+                       location.reload(); // หรืออัปเดตเฉพาะ row
+                       // ปิด modal
+                       var modalEl = document.getElementById('modalCheckSheetNo');
+                       var modalInstance = bootstrap.Modal.getInstance(modalEl);
+                       modalInstance.hide();
+
+                       // เคลียร์ input
+                       $('#CheckNo').val('');
+                       $('#selectedSerialNoCheckNo').val('');
+
+                       // TODO: อัพเดต UI ถ้าจำเป็น
+                   } else {
+                       showWarning("เกิดข้อผิดพลาด: " + response.message);
+                   }
+               },
+               error: function (xhr, status, error) {
+                   console.error(error);
+                   showWarning("เกิดข้อผิดพลาดระหว่างบันทึก");
+               }
+           });
+       }
+
+
        let currentSerialNo = null;
 
-            $(document).ready(function () {
-                // สร้าง instance ของ modal แค่ครั้งเดียว
-                var modalEl = document.getElementById('modalAddLocation');
-                var modalInstance = new bootstrap.Modal(modalEl);
+           $(document).ready(function () { 
+                     
+                    function setupModal(modalId, hiddenInputId, clearActiveBtn = false) {
+                        var modalEl = document.getElementById(modalId);
+                        var modalInstance = new bootstrap.Modal(modalEl);
 
-                // ดักทุกปุ่มที่เปิด modal
-                $('button[data-bs-toggle="modal"][data-bs-target="#modalAddLocation"]').on('click', function () {
-                    // เอาค่า Serial จาก data-serial ของปุ่มที่กด
-                    var serialNo = $(this).data('serial');
+                        // ดักทุกปุ่มที่เปิด modal
+                        $('button[data-bs-toggle="modal"][data-bs-target="#' + modalId + '"]').on('click', function () {
+                            var serialNo = $(this).data('serial');
+                            $('#' + hiddenInputId).val(serialNo);
 
-                    // ใส่ค่า serial เข้า hidden input ใน modal
-                    $('#selectedSerialNo').val(serialNo);
+                            if (clearActiveBtn) {
+                                $('#' + modalId + ' #locationList button').removeClass('active');
+                            }
 
-                    // เคลียร์การเลือก Location ก่อนเปิด
-                    $('#locationList button').removeClass('active');
+                            modalInstance.show();
+                        });
 
-                    // เปิด modal
-                    modalInstance.show();
+                        // เคลียร์ค่าเมื่อ modal ปิด
+                        modalEl.addEventListener('hidden.bs.modal', function () {
+                            if (clearActiveBtn) {
+                                $('#' + modalId + ' #locationList button').removeClass('active');
+                            }
+                            $('.modal-backdrop').remove(); // ป้องกัน backdrop ค้าง
+                        });
+                    }
+
+                    // ตั้งค่า modal แต่ละตัว
+                    setupModal('modalAddLocation', 'selectedSerialNo', true);
+                    setupModal('modalCheckSheetNo', 'selectedSerialNoCheckNo', false);
                 });
 
-                // เคลียร์และซ่อน backdrop เวลา modal ถูกปิด
-                modalEl.addEventListener('hidden.bs.modal', function () {
-                    // ลบ class active ของปุ่ม Location
-                    $('#locationList button').removeClass('active');
-
-                    // ป้องกัน backdrop ค้าง
-                    $('.modal-backdrop').remove();
-                });
-            });
 
 
 

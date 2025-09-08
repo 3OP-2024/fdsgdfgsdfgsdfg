@@ -6,6 +6,8 @@ using System.Text;
 
 namespace Receiving.Models
 {
+    [Table("WH_MT_ClaimRate")]
+
     public partial class HR_PR_EquipmentClaimRate
     {
         [Key]

@@ -72,11 +72,17 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr class="text-center">
+
+                                  
+
                                     <th>ประเภทการรับ</th>
                                     <th>รหัสสินค้า</th>
                                     <th>ชื่อสินค้า</th>
                                     <th>จำนวน</th>
                                     <th>หน่วย</th>
+
+
+
                                     <th>Stock Card</th>
                                 </tr>
                             </thead>
@@ -88,16 +94,10 @@
                                         <tr>
                                             <td class="text-left @(item.ReceivingType == "001" ? "color-orange" : "color-green")">
                                                 @item?.TypeIDName
-                                            </td>
-
+                                            </td> 
                                             <!-- ปุ่ม Inventory -->
                                             <td class="text-left">
-                                                <button class="btn btn-sm btn-outline-primary btn-show-inventory"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#modalInventory"
-                                                        data-code="@item.CodeID">
-                                                      @item.CodeID
-                                                </button>
+                                                @item.CodeID 
                                             </td>
 
                                             <td class="text-left">@item?.CodeName</td>
@@ -240,6 +240,11 @@
                     <table class="table table-bordered table-hover text-center" id="StockCardTable">
                         <thead class="table-light">
                             <tr>
+                                <th>Serial No.</th>
+                                <th>Location</th>
+                                <th>Lot No.</th>
+                                <th>วันหมดอายุ</th>
+
                                 <th>วันที่</th>
                                 <th>เลขที่ใบรับของ</th>
                                 <th>รับ</th>
@@ -261,7 +266,7 @@
         $(document).ready(function () {
 
             // ===== Inventory Modal =====
-            $(".btn-show-inventory").on("click", function () {
+            @*$(".btn-show-inventory").on("click", function () {
                 let codeId = $(this).data("code"); 
                 // reset UI
                 $("#ModalCodeid").text("");
@@ -300,17 +305,17 @@
                         $("#InventoryTable tbody").html("<tr><td colspan='5' class='text-danger'>โหลดข้อมูลไม่สำเร็จ</td></tr>");
                     }
                 });
-            });
+            });*@
 
+             
+            const detailBaseUrl = '@Url.Action("Detail", "ReceivingEq")';
+            const statusPage = '@Search.statusPage';
             // ===== Stock Card Modal =====
             $(".btn-show-stock").on("click", function () {
-                let codeId = $(this).data("code");
-
-                // reset UI
+                let codeId = $(this).data("code"); 
                 $("#ModalStockCodeid").text("");
                 $("#ModalStockQty").text("");
-                $("#StockCardTable tbody").html("<tr><td colspan='5'>Loading...</td></tr>");
-
+                $("#StockCardTable tbody").html("<tr><td colspan='5'>Loading...</td></tr>"); 
                 $.ajax({ 
                     url:'@Url.Action("GetStockCard", "ReceivingEq")',  
                     type: "GET",
@@ -325,9 +330,22 @@
                             let rows = "";
                             $.each(res.data.items, function (i, row) {
                                 rows += `
-                                    <tr>
+                                    <tr> 
+                                        <td>${row.serialNo}</td>
+                                        <td>${row.locationIDAndName}</td>
+                                        <td>${row.lotNo}</td>
+                                        <td>${row.expireDate}</td>
+
+
                                         <td>${row.transDate}</td>
-                                        <td>${row.refNo}</td>
+                                         <td>
+                                            ${
+                                                row.refNo.startsWith("RM") 
+                                                ? row.refNo 
+                                                : `<a href="${detailBaseUrl}?ID=${row.refNo}&statusPage=F01" 
+                                                       class="triggerLoadding">${row.refNo}</a>`
+                                            }
+                                        </td>
                                         <td class="text-end">${row.qtyIn  }</td>
                                         <td class="text-end">${row.qtyOut }</td>
                                         <td class="text-end">${row.balance}</td>

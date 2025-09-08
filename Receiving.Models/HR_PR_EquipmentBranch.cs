@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Receiving.Models
 {
+    
+   [Table("WH_MT_Branch")]
+
     public partial class HR_PR_EquipmentBranch
     {
         [Key]

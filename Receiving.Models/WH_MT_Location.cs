@@ -13,8 +13,18 @@ namespace Receiving.Models
 
         [StringLength(100)]
         public string LocationName { get; set; }
+        public string LocationIDAndName
+        {
+            get
+            {
+                if (LocationID != null)
+                {
+                    return LocationID + "-" + LocationName;
+                }
+                return "";
+            }
+        }
 
-     
         [StringLength(2)]
         public string ZoneID { get; set; }
 

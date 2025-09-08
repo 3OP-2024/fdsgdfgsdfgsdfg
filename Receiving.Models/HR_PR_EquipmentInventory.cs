@@ -6,6 +6,9 @@ using System.Text;
 
 namespace Receiving.Models
 {
+    
+    [Table("WH_PR_Inventory")]
+
     public partial class HR_PR_EquipmentInventory
     {
         [Key]
@@ -127,7 +130,7 @@ namespace Receiving.Models
         public string LocationID { get; set; }
 
         [ForeignKey("LocationID")]
-        public virtual HR_PR_EquipmentLocation HR_PR_EquipmentLocation { get; set; }
+        public virtual WH_MT_Location WH_MT_Location { get; set; }
 
         [StringLength(10)]
         public string RunningID { get; set; }

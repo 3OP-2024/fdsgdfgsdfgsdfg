@@ -6,6 +6,8 @@ using System.Text;
 
 namespace Receiving.Models
 {
+    [Table("WH_PR_ReceivingDetail")]
+
     public partial class HR_PR_EquipmentReceivingDetail
     {
         [Key]

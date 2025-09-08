@@ -321,7 +321,7 @@
                             </td>
                             
                             <td class="text-right">
-                                <select name="ClaimRate" class="form-select">
+                                <select name="ClaimRate" class="form-select" @Disable>
                                     @foreach (var r in (IEnumerable<Receiving.Models.HR_PR_EquipmentClaimRate>)ViewBag.ClaimRate)
                                     {
                                         @: <option value="@r.ClaimRateID" @(r.ClaimRateID == d?.ClaimRateID ? "selected" : "" )>
@@ -345,18 +345,25 @@
                                 @*<input class="form-control w-100" type="text" id="HR_PR_InternshipTimeEmpDetails[@irow].RemarkOfEditer" name="HR_PR_InternshipTimeEmpDetails[@irow].RemarkOfEditer" value="@item.RemarkOfEditer" maxlength="200" />*@
                             </td>
                             <td>
-                                <div class="d-flex flex-nowrap">
-                                    <button type="button" class="btn btn-danger btn-sm me-1 remove-row">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-secondary btn-sm  me-1  copy-row">
-                                        <i class="ti ti-copy"></i>
-                                    </button>
-                                    <button type="button" class="btn btn-info btn-sm create-input-btn addNewRow">
-                                        <i class="ti ti-input-ai"></i>
-                                    </button>
+                                @if (string.IsNullOrEmpty(Disable))
+                                {
+                                    if (ViewBag.Edit)
+                                    {
+                                        <div class="d-flex flex-nowrap">
+                                            <button type="button" class="btn btn-danger btn-sm me-1 remove-row">
+                                                <i class="ti ti-trash"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-secondary btn-sm  me-1  copy-row">
+                                                <i class="ti ti-copy"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-info btn-sm create-input-btn addNewRow">
+                                                <i class="ti ti-input-ai"></i>
+                                            </button>
+                                        </div>
+                                    }
 
-                                </div>
+                                }
+
                             </td>
                             <td hidden>@d?.ClaimRateID</td>
                         </tr>
@@ -555,17 +562,12 @@
 @section scripts {
     <script src="~/dist/libs/litepicker/dist/litepicker.js"></script>
     <script>
-               $(document).ready(function () {
-                        // โค้ดส่วนอื่นๆ ของคุณ...
-
-                        // ฟังก์ชันค้นหาสินค้าด้วย Ajax โดยใช้ jQuery อย่างเดียว
+               $(document).ready(function () { 
                         $('#tblDetail tbody').on('keyup', '.product-code-search', function () {
                             var $input = $(this);
                             var $row = $input.closest('tr');
                             var $productNameCell = $row.find('.product-name-cell');
-                            var term = $input.val();
-        
-                            // ลบ dropdown เก่าออกก่อน
+                            var term = $input.val(); 
                             $row.find('.search-results').remove();
 
                             // ตรวจสอบว่ามีคำที่พิมพ์แล้วอย่างน้อย 2 ตัวอักษร
@@ -620,7 +622,7 @@
                     // โค้ดส่วนอื่นๆ ของคุณ...
                 });
       
-            $('#tblDetail tbody').on('click', '.addNewRow', function () { 
+       $('#tblDetail tbody').on('click', '.addNewRow', function () { 
             var $firstRow = $('#tblDetail tbody tr:first'); 
             var $clonedRow = $firstRow.clone(true); // `true` copies data and events. 
             $clonedRow.find('td').each(function (index) {
@@ -637,21 +639,20 @@
 
                     } else if (index == 2) {
                         $newInput = "";
-                    } else {
+                    }  else {
                         $newInput = $('<input>', {
                             type: 'text',
                             class: 'form-control form-control-sm'
                         });
-                    }
-                    
-
+                    } 
                     // Add the new input to the <td>.
                     $(this).append($newInput);
-                }
+                } 
             });
 
             // 4. Clear values in all inputs and textareas in the cloned row.
             $clonedRow.find('input, textarea').val('');
+            $clonedRow.find('td:eq(11) input[name="expireDate"]').removeAttr('data-has-litepicker');
 
             // 5. Set the select box to the first option.
             $clonedRow.find('select').prop('selectedIndex', 0);
@@ -661,11 +662,7 @@
 
             // (Optional) Update the row numbers if you're using them.
             
-        });
-
-        // A function to update the row numbers.
-        
-        
+        }); 
         
         $('#tblDetail tbody').on('click', '.remove-row', function () {
             // Find the closest row (<tr>) and remove it
@@ -691,7 +688,7 @@
             // เซ็ตค่าให้ row ที่ clone
             $clonedRow.find('td:eq(3)').text(remain); // จำนวนที่สั่ง = เหลือ
             $clonedRow.find("input[name='qtyReceived']").val(remain); // รับ ต้องไม่เกินที่เหลือ
-
+            $clonedRow.find('td:eq(11) input[name="expireDate"]').removeAttr('data-has-litepicker');
             // Clear the input values in the cloned row to start fresh
             $clonedRow.find('input, textarea').val('');
 

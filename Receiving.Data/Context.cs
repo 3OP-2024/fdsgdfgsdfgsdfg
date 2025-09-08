@@ -15,6 +15,8 @@ namespace Receiving.Data
               : base(options)
         {
         }
+        public virtual DbSet<V_WH_StockCardReport> V_WH_StockCardReport { get; set; }
+
         public virtual DbSet<WH_MT_ItemName> WH_MT_ItemName { get; set; }
         public virtual DbSet<WH_MT_Location> WH_MT_Location { get; set; }
         public virtual DbSet<WH_MT_Zone> WH_MT_Zone { get; set; }
@@ -31,8 +33,8 @@ namespace Receiving.Data
         public virtual DbSet<V_HR_MT_Department> V_HR_MT_Department { get; set; }
         public virtual DbSet<V_Sys_Program_Document> V_Sys_Program_Document { get; set; }
         public virtual DbSet<Sys_Program> Sys_Program { get; set; }
-        public virtual DbSet<HR_PR_EquipmentLocation> HR_PR_EquipmentLocation { get; set; }
-        public virtual DbSet<HR_PR_EquipmentZone> HR_PR_EquipmentZone { get; set; }
+        //public virtual DbSet<HR_PR_EquipmentLocation> HR_PR_EquipmentLocation { get; set; }
+        //public virtual DbSet<HR_PR_EquipmentZone> HR_PR_EquipmentZone { get; set; }
         public virtual DbSet<SYS_RejectLogs> SYS_RejectLogs { get; set; }
         public virtual DbSet<V_SYS_USER> V_SYS_USER { get; set; }
         public virtual DbSet<V_SYS_USER_ROLE_PRIVILEGE> V_SYS_USER_ROLE_PRIVILEGE { get; set; }
@@ -44,6 +46,10 @@ namespace Receiving.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<V_WH_StockCardReport>(entity =>
+            {
+                entity.HasKey(e => new { e.CodeID, e.LocationID });
+            });
             modelBuilder.Entity<V_WH_RE_PR>(entity =>
             {
                 entity.HasKey(e => new { e.ShopName, e.ShopID, e.PODate, e.PONO, e.ItemOrder, e.DepartmentID, e.RequestDate, e.RequestNo });

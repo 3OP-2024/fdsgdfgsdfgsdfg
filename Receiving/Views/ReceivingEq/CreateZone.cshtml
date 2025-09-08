@@ -1,4 +1,4 @@
-﻿@model Receiving.Models.HR_PR_EquipmentZone
+﻿@model Receiving.Models.WH_MT_Zone
 @section Css{
     <style>
         .readonly-input[readonly] {
@@ -61,9 +61,9 @@
                         </thead>
 
                         <tbody>
-                            @if (Model?.HR_PR_EquipmentLocation != null)
+                            @if (Model?.WH_MT_Location != null)
                             {
-                                @foreach (var item in Model.HR_PR_EquipmentLocation)
+                                @foreach (var item in Model.WH_MT_Location)
                                 {
                                     <tr>
                                         <td class="zone-id">@item?.ZoneID</td>
@@ -136,7 +136,7 @@
         <td>${zoneValue}</td>
         <td><input type="text" class="form-control form-control-sm" name="locationNo" ></td>
         <td><input type="text" class="form-control form-control-sm" name="LocationName" placeholder="ชื่อ"></td>
-        <td><input type="number" class="form-control form-control-sm" name="Capacity" placeholder="ความจุ"></td>
+        <td class="capacity"><input type="number" class="form-control form-control-sm" name="Capacity" placeholder="ความจุ"></td>
         <td>
             <select class="form-select form-select-sm" name="LocationStatus">
                 <option value="1">ใช้งาน</option>
@@ -181,16 +181,36 @@
         ZoneID: $("#CodeID").val(),
         ZoneName: $("#Name").val(),
         UsageStatus: $("#Status").val() === "1",  // แปลงเป็น bool
-        HR_PR_EquipmentLocation: []
+        WH_MT_Location: []
     };
+
+        function getCellValue(tr, selector, fallbackSelector) {
+            let el = tr.find(selector);
+
+            // ถ้าไม่เจอ element ที่ selector ให้ลอง fallback เช่น span
+            if (el.length === 0 && fallbackSelector) {
+                el = tr.find(fallbackSelector);
+            }
+
+            if (el.length === 0) return "";
+
+            if (el.is('input, textarea, select')) {
+                return el.val() ?.trim() || "";
+            }
+
+            return el.text().trim();
+        }
+
 
     $("#tblLocations tbody tr").each(function() {
         const tr = $(this);
-        item.HR_PR_EquipmentLocation.push({
+        item.WH_MT_Location.push({
             ZoneID: $("#CodeID").val(),
-            LocationID: tr.find("input[name='locationNo']").val(),// tr.find("td:eq(1)").text().trim(),
+            LocationID: getCellValue(tr, "input[name='locationNo']", ".location-id"),
+
+            //LocationID: tr.find("input[name='locationNo']").val(),// tr.find("td:eq(1)").text().trim(),
             LocationName: tr.find("input[name='LocationName']").val(),
-            Capacity: tr.find("input[name='Capacity']").val(),
+            Capacity: getCellValue(tr, "input[name='Capacity']", ".capacity"),
             UsageStatus: tr.find("select[name='LocationStatus']").val() === "1"
         });
     });

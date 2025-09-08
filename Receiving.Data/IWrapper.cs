@@ -6,6 +6,7 @@ namespace Receiving.Data
 {
     public interface IWrapper
     {
+        IStockCardReportRepository StockCardReport { get; } 
         IItemNameRepository ItemName { get; } 
          ILocationRepository Location { get; } 
         IClaimRateRepository ClaimRate { get; }

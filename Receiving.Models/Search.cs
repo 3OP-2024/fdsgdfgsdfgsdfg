@@ -10,6 +10,7 @@ namespace Receiving.Models
         public string ID { get; set; } 
         public string TypeID { get; set; } 
         public string BranchID { get; set; } 
+        public string ZoneID { get; set; } 
         public string _typestatus { get; set; } 
 
 

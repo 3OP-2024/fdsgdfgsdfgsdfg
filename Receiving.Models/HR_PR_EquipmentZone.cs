@@ -9,8 +9,7 @@ namespace Receiving.Models
 {
     public partial class HR_PR_EquipmentZone
     {
-        [Key]
-        [StringLength(2)]
+        [Key] 
         public string ZoneID { get; set; }
 
         [StringLength(100)]
@@ -34,7 +33,7 @@ namespace Receiving.Models
             EditID = userId; 
         }
         [ForeignKey("ZoneID")]
-        public virtual ICollection<HR_PR_EquipmentLocation> HR_PR_EquipmentLocation { get; set; }
+        public virtual ICollection<WH_MT_Location> WH_MT_Location { get; set; }
         public void Edit(string userId, string userName, HR_PR_EquipmentZone newItem)
         {
             EditDate = DateTime.Now;
@@ -44,10 +43,10 @@ namespace Receiving.Models
             UsageStatus = newItem.UsageStatus;
 
             // ของเก่า (จาก DB)
-            var oldLocations = HR_PR_EquipmentLocation.ToList();
+            var oldLocations = WH_MT_Location.ToList();
 
             // ของใหม่ (จาก UI)
-            var newLocations = newItem.HR_PR_EquipmentLocation.ToList();
+            var newLocations = newItem.WH_MT_Location.ToList();
 
             // 1) หาที่ถูกลบ
             var removed = oldLocations
@@ -67,7 +66,7 @@ namespace Receiving.Models
             // ✅ อัปเดตข้อมูลจริง
             foreach (var add in added)
             {
-                HR_PR_EquipmentLocation.Add(new HR_PR_EquipmentLocation
+                WH_MT_Location.Add(new WH_MT_Location
                 {
                     ZoneID = ZoneID,
                     LocationID = add.LocationID,
@@ -81,7 +80,7 @@ namespace Receiving.Models
 
             foreach (var remove in removed)
             {
-                HR_PR_EquipmentLocation.Remove(remove);
+                WH_MT_Location.Remove(remove);
             }
 
             foreach (var update in updated)

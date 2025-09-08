@@ -1,4 +1,5 @@
-﻿using GFPT.Extension.Paging.Std20;
+﻿
+using GFPT.Extension.Paging.Std20;
 using Microsoft.EntityFrameworkCore;
 using Receiving.Models;
 using System;
@@ -10,6 +11,17 @@ namespace Receiving.Data
 {
 
 
+
+    public interface IStockCardReportRepository : IRepository<V_WH_StockCardReport>
+    {
+    }
+    public class StockCardReportRepository : Repository<V_WH_StockCardReport>, IStockCardReportRepository
+    {
+        public StockCardReportRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+    }
 
     public interface IItemNameRepository : IRepository<WH_MT_ItemName>
     {
@@ -137,24 +149,24 @@ namespace Receiving.Data
 
 
 
-    public interface IEquipmentZoneRepository : IRepository<HR_PR_EquipmentZone>
+    public interface IEquipmentZoneRepository : IRepository<WH_MT_Zone>
     { 
-        HelperPaging<HR_PR_EquipmentZone> GetDataList(Search search);
+        HelperPaging<WH_MT_Zone> GetDataList(Search search);
     }
-    public class  EquipmentZoneRepository : Repository<HR_PR_EquipmentZone>, IEquipmentZoneRepository
+    public class  EquipmentZoneRepository : Repository<WH_MT_Zone>, IEquipmentZoneRepository
     {
         public EquipmentZoneRepository(Context repositoryContext)
             : base(repositoryContext)
         {
         }
-        public HelperPaging<HR_PR_EquipmentZone> GetDataList(Search search)
+        public HelperPaging<WH_MT_Zone> GetDataList(Search search)
         {
             try
             {
                 
          
 
-                var items = RepositoryContext.HR_PR_EquipmentZone.Include(s => s.HR_PR_EquipmentLocation) 
+                var items = RepositoryContext.WH_MT_Zone.Include(s => s.WH_MT_Location) 
                                                                     .Where(l =>
                                                                          (l.ZoneName.Contains(search.RunningID) || l.ZoneID.Contains(search.RunningID) ||  string.IsNullOrEmpty(search.RunningID))   
                                                                     );
@@ -167,7 +179,7 @@ namespace Receiving.Data
 
                 search.sorting = String.IsNullOrEmpty(search.sorting) ? "ZoneID" : search.sorting;
                 search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort; 
-                var result = new HelperPaging<HR_PR_EquipmentZone>(items.OrderByDescending(l => l.ZoneID), (search.page != 0 ? search.page : 1), search.PageSetNumber, search.PageOn); 
+                var result = new HelperPaging<WH_MT_Zone>(items.OrderByDescending(l => l.ZoneID), (search.page != 0 ? search.page : 1), search.PageSetNumber, search.PageOn); 
                 result.Items = result.ToList();
                 return result;
             }
@@ -219,10 +231,10 @@ namespace Receiving.Data
 
     }
 
-    public interface ILocationRepository : IRepository<HR_PR_EquipmentLocation>
+    public interface ILocationRepository : IRepository<WH_MT_Location>
     { 
     }
-    public class  LocationRepository : Repository<HR_PR_EquipmentLocation>, ILocationRepository
+    public class  LocationRepository : Repository<WH_MT_Location>, ILocationRepository
     {
         public LocationRepository(Context repositoryContext)
             : base(repositoryContext)
@@ -270,12 +282,12 @@ namespace Receiving.Data
 
                 if (search.DateStartFrom != default(DateTime) && search.DateStartTo != default(DateTime)) { items = items.Where(e => search.DateStartFrom.Date <= e.ReceivingDate.Value.Date && e.ReceivingDate.Value.Date <= search.DateStartTo.Date); }
 
-                //if (items != null)
-                //{
-                //    items = items.Where(p => search.DepartmentPermistions.Any(s =>
-                //       (p.DepartmentID.Length <= 4 && p.DepartmentID == s)
-                //       || (p.DepartmentID.Length > 4 && p.DepartmentID.Substring(0, 4) == s)));
-                //}
+                if (items != null)
+                {
+                    items = items.Where(p => search.DepartmentPermistions.Any(s =>
+                       (p.DepartmentID.Length <= 4 && p.DepartmentID == s)
+                       || (p.DepartmentID.Length > 4 && p.DepartmentID.Substring(0, 4) == s)));
+                }
 
                 search.sorting = String.IsNullOrEmpty(search.sorting) ? "RunningID" : search.sorting;
                 search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort;
@@ -400,10 +412,10 @@ namespace Receiving.Data
         {
             try
             {
-                var items = RepositoryContext.HR_PR_EquipmentInventory.Include(d=>d.HR_PR_EquipmentLocation)  
+                var items = RepositoryContext.HR_PR_EquipmentInventory.Include(d=>d.WH_MT_Location)  
                                                                     .Where(l =>
                                                                          (l.RunningID.Contains(search.RunningID) || string.IsNullOrEmpty(search.RunningID))
-                                                                        && (l.SerialNo.Contains(search.RequestNo) || string.IsNullOrEmpty(search.RequestNo))
+                                                                        && (l.SerialNo.Contains(search.SerialNo) || string.IsNullOrEmpty(search.SerialNo))
                                                                         && (l.ReceivingType.Contains(search.TypeID) || string.IsNullOrEmpty(search.TypeID))
                                                                         && (l.CodeID.Contains(search.critiriaVendor) || l.CodeName.Contains(search.critiriaVendor) || string.IsNullOrEmpty(search.critiriaVendor))
  

@@ -95,10 +95,12 @@
                                  
                             </div>
 
-                            <div class="col-md-3 text-start"> 
-                                <a href='@Url.Action("Detail","ReceivingEq", new { TypeID = "001" })' class="btn btn-ghost-orange me-1" role="button">  <i class="ti ti-package"></i> รับอะไหล่</a>
-                                <a href='@Url.Action("Detail","ReceivingEq", new { TypeID = "002" })' class="btn btn-ghost-green me-1" role="button">   <i class="ti ti-box"></i>รับบรรจุภัณฑ์</a>
-                                
+                            <div class="col-md-3 text-start">
+                                @if (ViewBag.ViewEdit)
+                                {
+                                    <a href='@Url.Action("Detail","ReceivingEq", new { TypeID = "001" })' class="btn btn-ghost-orange me-1" role="button">  <i class="ti ti-package"></i> รับอะไหล่</a>
+                                    <a href='@Url.Action("Detail","ReceivingEq", new { TypeID = "002" })' class="btn btn-ghost-green me-1" role="button">   <i class="ti ti-box"></i>รับบรรจุภัณฑ์</a>
+                                } 
                             </div>
                         </div>
                     </form>

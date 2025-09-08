@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Receiving.Models
 {
+    
+         [Table("WH_MT_StockCard")]
     public partial class HR_PR_EquipmentStockCard
     {
         
@@ -18,7 +21,7 @@ namespace Receiving.Models
         {
             get
             {
-                if (string.IsNullOrEmpty(CodeID))
+                if (!string.IsNullOrEmpty(CodeID))
                 {
                     return CodeID + "-" + CodeName;
                 }

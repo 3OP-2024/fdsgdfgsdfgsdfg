@@ -5,6 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="HR_PR_EquipmentLocation.cs" />
+    <Compile Remove="HR_PR_EquipmentZone.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Itenso.TimePeriod">
       <HintPath>M:\System Development\Private\Programmer\Extension\Itenso.TimePeriod.dll</HintPath>
     </Reference>

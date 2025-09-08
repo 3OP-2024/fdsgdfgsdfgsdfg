@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using GFPT.Extension.Utility;
 using GFPT.Extension.Utility.Std;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +46,7 @@ namespace Template_Tabler.Controllers
                 {
                     if (!string.IsNullOrEmpty(user.UserLogin))
                         controller.ViewBag.userLogin = user.UserLogin;
+                        controller.ViewBag.userName = user.UserName;
                 }
                 controller.ViewBag.Host = host.GetHost();
                 controller.ViewBag.userPrivilege = userPrivilege;
@@ -58,7 +58,9 @@ namespace Template_Tabler.Controllers
             ViewBag.HostReport = $"{host}Report";
         }
         public IActionResult Index()
-        {           
+        {
+            ViewBag.userPrivilege = userPrivilege;
+
             return View();
         }
 

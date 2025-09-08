@@ -1,8 +1,21 @@
-﻿@*@{
-        var userPrivilege = (IEnumerable<V_SYS_USER_ROLE_PRIVILEGE>)ViewBag.userPrivilege;
+﻿@{
+        var userPrivilege = (IEnumerable<Receiving.Models.V_SYS_USER_ROLE_PRIVILEGE>)ViewBag.userPrivilege;
         var P01 = userPrivilege.Any(l => l.SYS_Status == "P01" && l.RightCode == "RC00");
+        var P02 = userPrivilege.Any(l => l.SYS_Status == "P02" && l.RightCode == "RCA1");
+        var P03 = userPrivilege.Any(l => l.SYS_Status == "P03" && l.RightCode == "RCA2");
+        var P04 = userPrivilege.Any(l => l.SYS_Status == "P04" && l.RightCode == "RC00");
+        var P05 = userPrivilege.Any(l => l.SYS_Status == "P05" && l.RightCode == "RC00");
+
+        var F01 = userPrivilege.Any(l => l.SYS_Status == "F01" && l.RightCode == "RC00");
+ 
+
         var M01 = userPrivilege.Any(l => l.SYS_Status == "M01" && l.RightCode == "RC00");
-    }*@
+        var M02 = userPrivilege.Any(l => l.SYS_Status == "M02" && l.RightCode == "RC00");
+        var M03 = userPrivilege.Any(l => l.SYS_Status == "M03" && l.RightCode == "RC00");
+
+        var R01 = userPrivilege.Any(l => l.SYS_Status == "R01" && l.RightCode == "RC00");
+        var R02 = userPrivilege.Any(l => l.SYS_Status == "R02" && l.RightCode == "RC00");
+    }
 
 <div class="container-xl mt-4">
     <div class="row g-4">
@@ -14,39 +27,86 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="P01" class="list-group-item  ">
-                            <i class="ti ti-file-text me-2 text-primary"></i> บันทึกใบรับของ
-                        </a>
 
-                       
-                        <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="P02"  class="list-group-item  ">
-                            <i class="ti ti-zoom-check me-2 text-info"></i> ตรวจสอบใบรับของ
-                        </a>
-                        <a asp-controller="ReceivingEq" asp-action="ListAs400" asp-route-statusPage="F02" class="list-group-item  ">
-                            <i class="ti ti-arrow-up-circle me-2 text-success"></i> อัปเดทเข้าระบบ AS400
-                        </a>
-                        <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="F01" class="list-group-item  ">
-                            <i class="ti ti-checklist me-2 text-warning"></i> ใบรับของเสร็จสิ้น
-                        </a>
-                        <a asp-controller="ReceivingEq" asp-action="ListInventory" asp-route-statusPage="P01" class="list-group-item  ">
-                            <i class="ti ti-package me-2 text-orange"></i> จัดเก็บสินค้า
-                        </a>
-                        <a asp-controller="ReceivingEq" asp-action="ListInventory" asp-route-statusPage="F01" class="list-group-item  ">
-                        @*<a asp-controller="ReceivingEq" asp-action="ListInventory" class="list-group-item disabled-link">*@
-                            <i class="ti ti-package-export me-2 text-purple"></i> จัดเก็บสินค้าเสร็จสิ้น
-                        </a>
-                        @* เงื่อนไขสิทธิ์การเข้าถึง *@
-                        @*
-        @if (P01) {
-            <a asp-controller="Sticker" asp-action="StickerPrintMulitiSize" class="list-group-item">
-                <i class="ti ti-printer me-2"></i> ปริ้นสติกเกอร์
-            </a>
-        } else {
-            <a class="list-group-item disabled">
-                <i class="ti ti-printer-off me-2"></i> ปริ้นสติกเกอร์
-            </a>
-        }
-                        *@
+                        @if (P01)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="P01" class="list-group-item  ">
+                                <i class="ti ti-file-text me-2 text-primary"></i> บันทึกใบรับของ
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-file-text me-2 text-primary"></i> บันทึกใบรับของ
+                            </a>
+                        }
+
+                        @if (P02)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="P02" class="list-group-item  ">
+                                <i class="ti ti-zoom-check me-2 text-info"></i> ตรวจสอบใบรับของ
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-zoom-check me-2 text-info"></i> ตรวจสอบใบรับของ
+                            </a>
+                        }
+                        @if (P03)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ListAs400" asp-route-statusPage="F02" class="list-group-item  ">
+                                <i class="ti ti-arrow-up-circle me-2 text-success"></i> อัปเดทเข้าระบบ AS400
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-arrow-up-circle me-2 text-success"></i> อัปเดทเข้าระบบ AS400
+                            </a>
+                        }
+
+                        @if (F01)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="List" asp-route-statusPage="F01" class="list-group-item  ">
+                                <i class="ti ti-checklist me-2 text-warning"></i> ใบรับของเสร็จสิ้น
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-checklist me-2 text-warning"></i> ใบรับของเสร็จสิ้น
+                            </a>
+                        }
+
+
+
+
+                        @if (P04)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ListInventory" asp-route-statusPage="P01" class="list-group-item  ">
+                                <i class="ti ti-package me-2 text-orange"></i> จัดเก็บสินค้า
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-checklist me-2 text-warning"></i> ใบรับของเสร็จสิ้น
+                            </a>
+                        } 
+                        
+                        @if (P05)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ListInventory" asp-route-statusPage="F01" class="list-group-item  ">
+                                 <i class="ti ti-package-export me-2 text-purple"></i> จัดเก็บสินค้าเสร็จสิ้น
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-package-export me-2 text-purple"></i> จัดเก็บสินค้าเสร็จสิ้น
+                            </a>
+                        }  
                     </div>
                 </div>
             </div>
@@ -60,15 +120,45 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a asp-controller="ReceivingEq" asp-action="ListMasterZone" asp-route-statusPage="M01" class="list-group-item  ">
-                            <i class="ti ti-map-pin me-2"></i> Zone & Location
-                        </a>
-                        <a asp-controller="ReceivingEq" asp-action="ListMasterClaimRate" asp-route-statusPage="M02" class="list-group-item  ">
-                            <i class="ti ti-receipt-tax me-2"></i> ข้อมูล VAT Claim Rate
-                        </a>
-                        <a asp-controller="ReceivingEq" asp-action="ListMasterBranch" asp-route-statusPage="M03" class="list-group-item  ">
-                            <i class="ti ti-building-store me-2"></i> ข้อมูล Branch
-                        </a>
+                        @if (M01)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ListMasterZone" asp-route-statusPage="M01" class="list-group-item  ">
+                                <i class="ti ti-map-pin me-2"></i> Zone & Location
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-map-pin me-2"></i> Zone & Location
+                            </a>
+                        }
+                        @if (M02)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ListMasterClaimRate" asp-route-statusPage="M02" class="list-group-item  ">
+                                <i class="ti ti-receipt-tax me-2"></i> ข้อมูล VAT Claim Rate
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-receipt-tax me-2"></i> ข้อมูล VAT Claim Rate
+                            </a>
+                        }
+                        @if (M03)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ListMasterBranch" asp-route-statusPage="M03" class="list-group-item  ">
+                                <i class="ti ti-building-store me-2"></i> ข้อมูล Branch
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-building-store me-2"></i> ข้อมูล Branch
+                            </a>
+                        }
+
+
+
                     </div>
                 </div>
             </div>
@@ -82,12 +172,33 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        <a asp-controller="ReceivingEq" asp-action="ReportCardList" asp-route-statusPage="M01" class="list-group-item ">
-                            <i class="ti ti-report-analytics me-2"></i> รายงานสินค้าคงคลัง
-                        </a> 
-                        <a asp-controller="ReceivingEq" asp-action="ReportCard" asp-route-statusPage="M01" class="list-group-item disabled-link">
-                            <i class="ti ti-report-analytics me-2"></i> รายงาน Zone & Location
-                        </a>
+                        @if (R01)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ReportCardList" asp-route-statusPage="R01" class="list-group-item ">
+                                <i class="ti ti-report-analytics me-2"></i> รายงานสินค้าคงคลัง
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-report-analytics me-2"></i> รายงานสินค้าคงคลัง
+                            </a>
+                        }
+
+                        @if (R02)
+                        {
+                            <a asp-controller="ReceivingEq" asp-action="ReportCard" asp-route-statusPage="R02" class="list-group-item ">
+                                <i class="ti ti-report-analytics me-2"></i> สินค้าในคลัง
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-report-analytics me-2"></i> สินค้าในคลัง
+                            </a>
+                        }
+
+
                     </div>
                 </div>
             </div>

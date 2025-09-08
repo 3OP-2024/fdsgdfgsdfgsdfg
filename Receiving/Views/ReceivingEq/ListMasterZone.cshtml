@@ -1,4 +1,4 @@
-﻿@model GFPT.Extension.Paging.Std20.HelperPaging<Receiving.Models.HR_PR_EquipmentZone>
+﻿@model GFPT.Extension.Paging.Std20.HelperPaging<Receiving.Models.WH_MT_Zone>
 @{
     Receiving.Models.Search Search = ViewBag.Search ?? null;
     var TotalItems = Model?.TotalItems;
@@ -106,7 +106,7 @@
                                     </td>
 
                                     <td class="text-left  ">
-                                        @item.HR_PR_EquipmentLocation.Count
+                                        @item.WH_MT_Location.Count
                                     </td>
                                     <td class="text-center">
                                         @if (item.UsageStatus == true)

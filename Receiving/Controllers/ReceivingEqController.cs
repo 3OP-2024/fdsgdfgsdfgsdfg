@@ -151,6 +151,8 @@ namespace Receiving.Controllers
             ViewBag.CurrentSort = Search.currentSort;
             if(!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
             if (!string.IsNullOrEmpty(Search.receiveDateEnd)) { Search.DateStartTo = Search.receiveDateEnd.stringToDateTime(); }
+          var  DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P03" }).ToList();
+            Search.DepartmentPermistions = DepPartment.Select(l => l.DepartmentID).ToList();
             var ListItemss = _repo.ReceivingHeader.GetDataList(Search);
             var _TypeID =
                     new List<SelectListItem>
@@ -186,8 +188,42 @@ namespace Receiving.Controllers
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
             ViewBag.CurrentSort = Search.currentSort;
-            if(!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
+            ViewBag.userPrivilege = userPrivilege;
+ 
+
+
+            if (!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
             if (!string.IsNullOrEmpty(Search.receiveDateEnd)) { Search.DateStartTo = Search.receiveDateEnd.stringToDateTime(); }
+            var ViewAll = false;
+            var DepPartment = new List<HR_MT_Department>();
+
+            switch (Search.statusPage)
+            {
+                case "P01":
+                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P01" }).ToList(); 
+                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P01" && l.RightCode == "RC00"));
+                    break;
+                case "P02":
+                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P02" }).ToList(); 
+                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P02") && l.RightCode == "RCA1");
+                    break;
+                case "P03":
+                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P03" }).ToList();
+                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P03") && l.RightCode == "RCA2"); 
+                    break; 
+                case "F01":
+                case "C01":
+                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "F01" }).ToList();
+                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "F01") && l.RightCode == "RC00");
+                    break;
+                default:
+                    break;
+            }
+
+            if (!ViewAll) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
+            ViewBag.ViewEdit = CheckPer("P01", "RC01");
+            Search.DepartmentPermistions = DepPartment.Select(l => l.DepartmentID).ToList();
+
             var ListItemss = _repo.ReceivingHeader.GetDataList(Search);
             var _TypeID =
                     new List<SelectListItem>
@@ -199,10 +235,22 @@ namespace Receiving.Controllers
 
             return View(ListItemss);
         }
-        public IActionResult Detail(Search item)
+        public IEnumerable<HR_MT_Department> GetDepartmentByPermissionGetList(List<string> status)
         {
-            ViewBag.Edit = true;
-            ViewBag.approve1 = true;
+            var GroupId = userPrivilege.Where(l => status.Contains(l.SYS_Status)).Select(l => l.GroupDepartment).Distinct().ToList();
+            var DepartmentID = _repo.GroupDepartmentDetail.FindByCondition(e => GroupId.Contains(e.GroupDepID)).Select(l => l.DepartmentID).ToList();
+            var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true && DepartmentID.Any(s => l.DepartmentID.StartsWith(s)));
+            return MTDepartment;
+        }
+        public bool CheckPer(string SYS_Status = null, string RightCode = null)
+        {
+
+            return userPrivilege.Any(l => l.SYS_Status == SYS_Status && l.RightCode == RightCode);
+        }
+        public IActionResult Detail(Search item)
+        { 
+            ViewBag.Edit = CheckPer("P01", "RC01"); 
+            ViewBag.approve1 = CheckPer("P02", "RCA1");  
             var result = _repo.ReceivingHeader.FindSingle(l => l.RunningID == item.ID, 
                 l => l.Include(x => x.HR_PR_EquipmentReceivingDetail).ThenInclude(c => (c as HR_PR_EquipmentReceivingDetail).HR_PR_EquipmentClaimRate)
                       .Include(x => x.V_HR_MT_Department)) ?? null;
@@ -326,6 +374,16 @@ namespace Receiving.Controllers
                             EditDate = DateTime.Now,
                         };
 
+                        var oldMt = _repo.ItemName.FindSingle(f => f.ItemID == item.CodeID) ?? null;
+                        if(oldMt != null)
+                        {
+                            oldMt.EditID = user.UserID;
+                            oldMt.EditName = user.UserName;
+                            oldMt.EditDate = DateTime.Now;
+                            oldMt.Quantity = oldMt.Quantity + item.QtyReceived;
+                            _repo.ItemName.Update(oldMt);
+                        }
+                      
                         _repo.StockCard.Create(oldStockCard);
 
                     }
@@ -498,6 +556,9 @@ namespace Receiving.Controllers
         #region Master 
         public IActionResult ListMasterZone(Search Search)
         {
+            var ViewM01 = CheckPer("M01", "RC00");
+            if (!ViewM01) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
+
             ViewData["Title"] = " Zone & Location";
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
@@ -523,12 +584,12 @@ namespace Receiving.Controllers
                       };
             ViewData["Title"] = "Zone";
             ViewBag.Search = Search; 
-            var ListItemss = _repo.EquipmentZone.FindSingle(l => l.ZoneID == Search.ID , g=>g.Include(f=>f.HR_PR_EquipmentLocation)) ?? null ;
+            var ListItemss = _repo.EquipmentZone.FindSingle(l => l.ZoneID == Search.ID , g=>g.Include(f=>f.WH_MT_Location)) ?? null ;
             ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", ListItemss?.UsageStatus == true ? "1" : "0");
 
             return View(ListItemss);
         }
-        public IActionResult SaveZone(HR_PR_EquipmentZone item)
+        public IActionResult SaveZone(WH_MT_Zone item)
         {
             if (item == null) return BadRequest();
             var DataSendMail = new HR_PR_EquipmentReceivingHeader();
@@ -536,7 +597,7 @@ namespace Receiving.Controllers
             {
                 var old = _repo.EquipmentZone.FindSingle(
                         l => l.ZoneID == item.ZoneID,
-                        l => l.Include(f => f.HR_PR_EquipmentLocation)
+                        l => l.Include(f => f.WH_MT_Location)
                     );
                 if (old == null) // CREATE NEW
                 { 
@@ -567,6 +628,8 @@ namespace Receiving.Controllers
 
         public IActionResult ListMasterBranch(Search Search)
         {
+            var ViewM03 = CheckPer("M03", "RC00");
+            if (!ViewM03) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
             ViewData["Title"] = "ข้อมูล Branch";
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
@@ -662,17 +725,12 @@ namespace Receiving.Controllers
                 return Json(new { success = false, ex = ex.Message });
             }
         }
-        public IEnumerable<HR_MT_Department> GetDepartmentByPermissionGetList(List<string> status)
-        {
-            var GroupId = userPrivilege.Where(l => status.Contains(l.SYS_Status)).Select(l => l.GroupDepartment).Distinct().ToList();
-            var DepartmentID = _repo.GroupDepartmentDetail.FindByCondition(e => GroupId.Contains(e.GroupDepID)).Select(l => l.DepartmentID).ToList();
-            var MTDepartment = _repo.MT_Department.FindByCondition(l => l.UsageStatus == true && DepartmentID.Any(s => l.DepartmentID.StartsWith(s)));
-            return MTDepartment;
-        }
-
+ 
 
         public IActionResult ListMasterClaimRate(Search Search)
         {
+            var ViewM02 = CheckPer("M02", "RC00");
+            if (!ViewM02) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
             ViewData["Title"] = "ข้อมูล ClaimRate";
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
@@ -698,6 +756,9 @@ namespace Receiving.Controllers
 
         public IActionResult ReportCard(Search Search)
         {
+            var ViewM02 = CheckPer("R02", "RC00");
+            if (!ViewM02) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
+
             ViewData["Title"] = "รายงานสินค้าคงคลัง";
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
@@ -716,10 +777,15 @@ namespace Receiving.Controllers
             //                new SelectListItem {Text = "ไม่ใช้งาน", Value = "0"},
             //       };
             //ViewBag._typedaystatus = new SelectList(_typestatus, "Value", "Text", Search.TypeID);
-            return View();
+
+            ViewBag.Zone = new SelectList(_repo.EquipmentZone.FindByCondition(l => l.UsageStatus == true), "ZoneID", "ZoneIDAndName", Search?.ZoneID);
+            var item = _repo.StockCardReport.FindByCondition(l=>l.ZoneID.Contains(Search.ZoneID)).ToList();
+            return View(item);
         }
         public IActionResult ReportCardList(Search Search)
         {
+            var ViewM02 = CheckPer("R01", "RC00");
+            if (!ViewM02) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
             ViewData["Title"] = "รายงานสินค้าคงคลัง";
             ViewBag.Search = Search;
             Search.page = ((Search.page == 0) ? 1 : Search.page);
@@ -791,13 +857,19 @@ namespace Receiving.Controllers
                 {
                     balance += (l.QtyReceived ?? 0) - (l.QtyPay ?? 0);
 
+                    var inven = _repo.Inventory.FindSingle(g => g.RunningID == l.RunningID && g.CodeID == l.CodeID , h=>h.Include(d=>d.WH_MT_Location)) ?? null;
                     return new
                     {
-                        CodeIDName = l.CodeName,
+                        CodeIDName = l.CodeIDName,
                         TransDate = l.EditDateTH,
                         RefNo = l.RunningID,
                         QtyIn = l.QtyReceived ?? 0,
                         QtyOut = l.QtyPay ?? 0,
+                        SerialNo = inven?.SerialNo ?? "",
+                        ExpireDate = inven?.ExpireDateTH ?? "",
+                        LotNo = inven?.LotNo ?? "",
+                        LocationIDAndName = inven?.WH_MT_Location?.LocationIDAndName ?? "",
+
                         Balance = balance
                     };
                 }).ToList();

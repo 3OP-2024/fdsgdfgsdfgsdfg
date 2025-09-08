@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace Receiving.Models
 {
+     
+    [Table("V_WH_PR_Inventory")]
+
     public partial class V_HR_PR_EquipmentInventory
     {
 

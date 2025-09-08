@@ -20,8 +20,8 @@ namespace Receiving.Data
         public IEquipmentZoneRepository EquipmentZone => new  EquipmentZoneRepository(_repoContext);
         public IBranchRepository Branch => new  BranchRepository(_repoContext);
         public IClaimRateRepository ClaimRate   => new ClaimRateRepository(_repoContext);
+        public IStockCardReportRepository StockCardReport => new  StockCardReportRepository(_repoContext); 
 
-          
 
         public IReceivingDetailRepository ReceivingDetail => new ReceivingDetailRepository(_repoContext);
         public IReceivingHeaderRepository ReceivingHeader => new ReceivingHeaderRepository(_repoContext);

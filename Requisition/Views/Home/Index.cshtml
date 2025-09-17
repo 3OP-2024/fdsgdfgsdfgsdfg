@@ -1,0 +1,182 @@
+﻿@{
+    var userPrivilege = (IEnumerable<Requisition.Models.V_SYS_USER_ROLE_PRIVILEGE>)ViewBag.userPrivilege;
+    var P01 = userPrivilege.Any(l => l.SYS_Status == "P01" && l.RightCode == "RC00");
+    var P02 = userPrivilege.Any(l => l.SYS_Status == "P02" && l.RightCode == "RCA1");
+    var P03 = userPrivilege.Any(l => l.SYS_Status == "P03" && l.RightCode == "RCA2");
+    var P04 = userPrivilege.Any(l => l.SYS_Status == "P04" && l.RightCode == "RCA3");
+    var P05 = userPrivilege.Any(l => l.SYS_Status == "P05" && l.RightCode == "RC00");
+
+    var F01 = userPrivilege.Any(l => l.SYS_Status == "F01" && l.RightCode == "RC00");
+
+
+    
+   
+    var numberP01 = ViewBag.numberP01;
+    var numberP02 = ViewBag.numberP02;
+    var numberP03 = ViewBag.numberP03;
+    var numberP04 = ViewBag.numberP04;
+    var numberF02 = ViewBag.numberF02;
+     }
+
+<div class="container-xl mt-4">
+    <div class="row g-4">
+        <!-- เมนูโปรแกรม -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">เมนูโปรแกรม</h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+
+                        @if (P01)
+                        {
+                            <a asp-controller="Requisition"
+                               asp-action="List"
+                               asp-route-statusPage="P01"
+                               class="list-group-item position-relative">
+                                <i class="ti ti-file-text me-2 text-primary"></i>
+                                <span class="position-relative">
+                                    บันทึกใบเบิกของ
+
+                                    &nbsp;&nbsp;
+                                    <span class="badge bg-red text-white position-absolute top-0 start-100 translate-middle"
+                                          @(numberP01 > 0 ? "" : "hidden")>
+                                        @numberP01
+                                    </span>
+                                </span>
+                            </a>
+
+
+
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-file-text me-2 text-primary"></i> บันทึกใบเบิกของ
+
+                            </a>
+                        }
+
+                        @if (P02)
+                        {
+
+
+
+                            <a asp-controller="Requisition" asp-action="List" asp-route-statusPage="P02" class="list-group-item position-relative">
+                                <i class="ti ti-file-text me-2 text-primary"></i>
+                                <span class="position-relative">
+                                    อนุมัติใบเบิกของ
+                                    &nbsp;&nbsp;
+                                    <span class="badge bg-red text-white position-absolute top-0 start-100 translate-middle"
+                                          @(numberP02 > 0 ? "" : "hidden")>
+                                        @numberP02
+                                    </span>
+                                </span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-zoom-check me-2 text-info"></i> อนุมัติใบเบิกของ
+
+                            </a>
+                        }
+                        @if (P03)
+                        {
+                            <a asp-controller="Requisition" asp-action="List" asp-route-statusPage="P03" class="list-group-item position-relative">
+                                <i class="ti ti-file-text me-2 text-primary"></i>
+                                <span class="position-relative">
+                                    พัสดุจ่ายของ
+                                    &nbsp;&nbsp;
+                                    <span class="badge bg-red text-white position-absolute top-0 start-100 translate-middle"
+                                          @(numberP03 > 0 ? "" : "hidden")>
+                                        @numberP03
+                                    </span>
+                                </span>  
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-arrow-up-circle me-2 text-success"></i> พัสดุจ่ายของ
+
+                            </a>
+                        }
+
+                        @if (F01)
+                        {
+                            <a asp-controller="Requisition" asp-action="List" asp-route-statusPage="P04" class="list-group-item position-relative">
+ 
+                                <i class="ti ti-file-text me-2 text-primary"></i>
+                                <span class="position-relative">
+                                    พัสดุตรวจสอบการจ่าย
+                                    &nbsp;&nbsp;
+                                    <span class="badge bg-red text-white position-absolute top-0 start-100 translate-middle"
+                                          @(numberP04 > 0 ? "" : "hidden")>
+                                        @numberP04
+                                    </span>
+                                </span>
+
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-checklist me-2 text-warning"></i> พัสดุตรวจสอบการจ่าย
+
+                            </a>
+                        }
+
+
+
+
+                        @if (P04)
+                        { 
+
+                            <a asp-controller="Requisition" asp-action="List" asp-route-statusPage="F02" class="list-group-item position-relative"> 
+                                <i class="ti ti-file-text me-2 text-primary"></i>
+                                <span class="position-relative">
+                                    อัตเดทเข้าระบบ AS400
+                                    &nbsp;&nbsp;
+                                    <span class="badge bg-red text-white position-absolute top-0 start-100 translate-middle"
+                                          @(numberF02 > 0 ? "" : "hidden")>
+                                        @numberF02
+                                    </span>
+                                </span> 
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-checklist me-2 text-warning"></i> อัตเดทเข้าระบบ AS400
+
+                            </a>
+                        }
+
+                        @if (F01)
+                        {
+                            <a asp-controller="Requisition" asp-action="List" asp-route-statusPage="F01" class="list-group-item  ">
+                                <i class="ti ti-package-export me-2 text-purple"></i> ใบเบิกของเสร็จสิ้น
+
+                            </a>
+                        }
+                        else
+                        {
+                            <a class="list-group-item disabled-link">
+                                <i class="ti ti-package-export me-2 text-purple"></i> ใบเบิกของเสร็จสิ้น
+
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+       
+    </div>
+</div>
+
+@section Scripts {
+    <!-- ถ้ามี JavaScript เพิ่มเติมสามารถใส่ได้ที่นี่ -->
+}

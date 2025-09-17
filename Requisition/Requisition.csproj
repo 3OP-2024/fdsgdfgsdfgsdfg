@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
+    <TypeScriptToolsVersion>3.1</TypeScriptToolsVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="wwwroot\dist\libs\countup.js\.vscode\tasks.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\dist\libs\clipboard\.github\ISSUE_TEMPLATE\bug_report.md" />
+    <None Include="wwwroot\dist\libs\clipboard\.github\ISSUE_TEMPLATE\documentation.md" />
+    <None Include="wwwroot\dist\libs\clipboard\.github\ISSUE_TEMPLATE\proposal.md" />
+    <None Include="wwwroot\dist\libs\clipboard\.github\PULL_REQUEST_TEMPLATE.md" />
+    <None Include="wwwroot\dist\libs\clipboard\.github\stale.yml" />
+    <None Include="wwwroot\dist\libs\clipboard\.github\workflows\publish.yml" />
+    <None Include="wwwroot\dist\libs\clipboard\.github\workflows\test.js.yml" />
+    <None Include="wwwroot\dist\libs\clipboard\.husky\pre-commit" />
+    <None Include="wwwroot\dist\libs\countup.js\.github\ISSUE_TEMPLATE.md" />
+    <None Include="wwwroot\dist\libs\countup.js\.github\PULL_REQUEST_TEMPLATE.md" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\Requisition.Data\Requisition.Data.csproj" />
+    <ProjectReference Include="..\Requisition.Models\Requisition.Models.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="GFPT.Extension.Paging.Std20">
+      <HintPath>M:\System Development\Private\Programmer\Extension\GFPT.Extension.Paging.Std20.dll</HintPath>
+    </Reference>
+    <Reference Include="GFPT.Extension.Utility.Std">
+      <HintPath>M:\System Development\Private\Programmer\Extension\GFPT.Extension.Utility.Std.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

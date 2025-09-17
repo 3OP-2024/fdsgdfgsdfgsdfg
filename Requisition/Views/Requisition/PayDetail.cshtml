@@ -1,0 +1,765 @@
+﻿@model Requisition.Models.WH_PR_RequisitionHeader
+
+@{ string Disable = ""; var DisableDDlType = false;
+    if (Model?.SYS_Status != "P03" )
+    {
+        Disable = "disabled";
+        DisableDDlType = true;
+    }
+    Requisition.Models.Search Search = ViewBag.Search ?? null;
+    if (!string.IsNullOrEmpty(Model?.RequisitionType)) { Search.TypeID = Model?.RequisitionType; }
+    var approve1 = (Model?.SYS_Status == "P04" && ViewBag.approve2 == true ? false : true);
+
+}
+
+
+@section Css{
+    @*<link href="~/css/icons/select2.css" rel="stylesheet" />
+        <link href="~/assets/plugins/bootstrap-datetimepicker/build/css/bootstrap-datetimepicker.css" rel="stylesheet" />*@
+    <style>
+        .jobcode-input {
+            cursor: pointer;
+        }
+        .serial-input {
+            cursor: pointer;
+        }
+        /* กำหนดความสูง modal-body และ scroll */
+        #serialModal .modal-body {
+            min-width: 60vh;
+            max-height: 60vh; /* ความสูงสูงสุด 60% ของ viewport */
+            overflow-y: auto; /* scroll เมื่อเกินความสูง */
+        }
+
+        /* Table fix header (ถ้าต้องการ) */
+        #serialModal table thead th {
+            position: sticky;
+            top: 0;
+            
+            z-index: 1;
+        }
+     
+
+    /* เปลี่ยน cursor และ hint */
+    .editable-input[readonly] {
+    cursor: pointer;
+    border-bottom: 1px dashed #ccc;
+    transition: border-color .2s;
+    }
+
+    .editable-input[readonly]:hover {
+    border-color: #007bff;
+    }
+
+    .edit-icon {
+    opacity: 0.4;
+    pointer-events: none;
+    transition: opacity .2s;
+    }
+
+    .editable-wrapper:hover .edit-icon {
+    opacity: 1;
+    }
+
+
+
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    button:disabled {
+    cursor: not-allowed !important;
+    }
+
+    .dataTables_empty {
+    text-align: center;
+    color: red;
+    }
+
+    .error {
+    color: red;
+    }
+
+    .textcolorred {
+    color: red;
+    }
+
+    span {
+    border-color: black !important;
+    }
+
+    .card .card {
+    border-color: black;
+    box-shadow: none;
+    }
+
+    #vendorTable thead th {
+    position: sticky;
+    top: 0;
+    /*background: #f8f9fa; /* สีพื้นหลังหัวตาราง */
+    z-index: 1;
+    }
+
+    .table > :not(caption) > * > *, .markdown > table > :not(caption) > * > * {
+    padding: 4px;
+    color: var(--tblr-table-color-state, var(--tblr-table-color-type, var(--tblr-table-color)));
+    background-color: var(--tblr-table-bg);
+    border-bottom-width: var(--tblr-border-width);
+    box-shadow: inset 0 0 0 9999px var(--tblr-table-bg-state, var(--tblr-table-bg-type, var(--tblr-table-accent-bg)));
+    }
+
+    .form-check-input[type=radio] {
+    border-radius: 50%;
+    border: 2px solid #000; /* เส้นวงกลมสีดำ */
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    }
+
+    .form-check-input[type=radio]:checked {
+    background-color: #000; /* จุดข้างในเป็นสีดำตอนเลือก */
+    border-color: #000;
+    }
+
+    #tblDetail td textarea[name*="RemarkOfEditer"] {
+    min-width: 300px; /* กำหนดความกว้างขั้นต่ำ */
+    }
+
+
+    /* Container for the search results dropdown */
+    .search-results {
+    position: absolute;
+    z-index: 1000; /* ทำให้ dropdown อยู่บนสุด */
+    width: calc(20% - 2px); /* กว้างเท่ากับ input */
+    max-height: 200px; /* จำกัดความสูง */
+    overflow-y: auto; /* มี scrollbar ถ้าเนื้อหาเกิน */
+    border: 1px solid #ccc; /* เส้นขอบ */
+    border-top: none; /* ไม่มีเส้นขอบด้านบน */
+    border-radius: 0 0 .25rem .25rem; /* ขอบโค้งด้านล่าง */
+    box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15); /* เงา */
+    background-color: #fff; /* พื้นหลังสีขาว */
+    }
+
+    /* Style for each item in the dropdown */
+    .list-group-item {
+    position: relative;
+    display: block;
+    padding: .5rem 1rem;
+    color: #212529;
+    text-decoration: none;
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, .125) !important; /* เส้นแบ่งรายการ */
+    }
+
+    /* Hover and focus effect for clickable items */
+    .list-group-item-action:hover,
+    .list-group-item-action:focus {
+    z-index: 5; /* ทำให้เส้นขอบไม่ถูกบัง */
+    color: #212529;
+    text-decoration: none;
+    background-color: #f8f9fa !important; /* สีพื้นหลังเมื่อ hover */
+    }
+
+    /* Fix for the first item's top border */
+    .list-group-item:first-child {
+    border-top-left-radius: inherit;
+    border-top-right-radius: inherit;
+    }
+
+    .list-group-item-action {
+    width: 100% !important;
+    color: var(--tblr-list-group-action-color);
+    text-align: inherit;
+    }
+
+    .form-check-input[type=checkbox] {
+    border: 2px solid #000;
+    border-radius: var(--tblr-border-radius);
+    }
+    </style>
+}
+<div class="container-xl">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">@Model?.statusPageName</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- Row 1 -->
+            <div class="row mb-1 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">ประเภทการเบิก:</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <span class="badge   @(Search?.TypeID == "001" ? "bg-orange " : "bg-green ")text-red-fg">@Search?.TypeIDName</span>
+                    <input type="hidden" id="RequisitionType" value="@Search?.TypeID" />
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">สถานะ </label>
+                <div class="col-md-2 col-12">
+                    @Model?.SYS_Status - @Model?.statusPageName
+                </div>
+            </div>
+
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">เลขที่ใบเบิกของ :</label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <label class="form-control-plaintext" id="RunningID">@Model?.RunningID</label>
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">
+                    วันที่เบิกของ :
+                </label>
+                <div class="col-md-2 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="ti ti-calendar"></i></span>
+                        <input type="text"
+                               class="form-control DateInput"
+                               placeholder="DD/MM/YYYY"
+                               name="RequisitionDate"
+                               value="@(string.IsNullOrEmpty(Model?.RequisitionDateTH) ? DateTime.Now.ToString("dd/MM/yyyy") : Model.RequisitionDateTH)"
+                               @Disable
+                               autocomplete="off">
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-3 align-items-center">
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">
+                    แผนกที่เขียนใบเบิก:
+                </label>
+                <div class="col-md-2 col-12 mb-2 mb-md-0">
+                    <select class="form-select" name="DepartmentID" id="DepartmentID" disabled="@(DisableDDlType)" asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
+
+                </div>
+                <div class="col-md-2 d-none d-md-block"></div>
+                <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">
+                    เลขที่ใบเบิกพัสดุ :
+                </label>
+                <div class="col-md-2 col-12">
+                    <input type="text" class="form-control  " id="RequisitionNo" @Disable name="RequisitionNo" value="@Model?.RequisitionNo" placeholder="เลขที่ใบเบิกพัสดุ">
+
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    @if (string.IsNullOrEmpty(Disable))
+                    {
+                        if (ViewBag.Edit)
+                        {
+                            <div class="d-flex justify-content-center flex-wrap gap-3">
+                                <!-- ปุ่มเปิด Modal จากใบขอซื้อ -->
+                                <button type="button"
+                                        class="btn btn-md btn-green d-flex align-items-center px-4 py-2 shadow rounded-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalRequisitionFromPO">
+                                    <i class="ti ti-file-invoice me-2 fs-5"></i> จากใบขอซื้อ
+                                </button>
+
+                                <!-- ปุ่มเปิด Modal จากสต็อคพัสดุ -->
+                                <button type="button"
+                                        class="btn btn-md btn-warning d-flex align-items-center px-4 py-2 shadow rounded-2"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalFromStock">
+                                    <i class="ti ti-box me-2 fs-5"></i> จากสต็อคพัสดุ
+                                </button>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-hover" id="tblDetail">
+                    <thead>
+                        <tr class="text-center">
+                            <th>ลำดับ</th>
+                            <th>รหัสสินค้า</th>
+                            <th>ชื่อสินค้า</th>
+                            <th>เบิก</th>
+                            <th>จ่ายจริง</th>
+                            <th>Serial No.</th>
+                            <th>หน่วย</th>
+                            <th>หมายเหตุ</th>
+                            <th>รหัสงาน</th>
+                            <th>ชื่องาน</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.WH_PR_RequisitionDetail != null)
+                        {
+                            @foreach (var d in Model?.WH_PR_RequisitionDetail)
+                            {
+                                <tr class="text-center">
+                                    <td>@d.ItemOrder</td>
+                                    <td class="text-left">@d?.ItemID</td>
+                                    <td class="text-start">@d?.WH_MT_ItemName?.ItemNameTH</td>
+                                    <td class="text-right">@d?.Quantity</td>
+
+                                    <td class="text-end">
+                                        @if (Model?.SYS_Status == "P03")
+                                        {
+                                            <div class="editable-wrapper position-relative d-inline-block w-100">
+                                                <input type="number"
+                                                       class="editable-input form-control-plaintext text-end pe-4"
+                                                       name="QtyRequisition"
+                                                       value="@d?.QtyRequisition"
+                                                       readonly
+                                                       min="0" />
+                                                <i class="ti ti-pencil text-muted position-absolute end-0 top-50 translate-middle-y me-2 small edit-icon color-orange"></i>
+                                            </div>
+                                        }
+                                        else
+                                        {
+
+                                            @d?.QtyRequisition
+                                        }
+
+                                    </td>
+                                    <td class="text-right">
+                                        @if (Model?.SYS_Status == "P03")
+                                        {
+                                            <div class="serial-wrapper position-relative d-inline-block w-100">
+                                                <input type="text"
+                                                       data-codeID="@d?.ItemID"
+                                                       class="serial-input form-control pe-4"
+                                                       value="@d?.SerialNo"
+                                                       name="SerialNo"
+                                                       placeholder="เลือกหรือกรอก Serial...">
+                                                <i class="ti ti-search text-muted position-absolute end-0 top-50 translate-middle-y me-2 small search-icon color-orange"></i>
+                                            </div>
+
+                                        }
+                                        else
+                                        {
+
+                                            @d?.SerialNo
+                                        }
+                                    </td>
+
+                                    <td>@d?.WH_MT_ItemName?.UnitNameTH</td>
+                                    <td>@d?.Remark</td>
+                                    <td class="text-start">
+                                        @if (Model?.SYS_Status == "P03")
+                                        {
+                                            <div class="editable-wrapper position-relative d-inline-block w-100">
+                                                <input type="text"
+                                                       class="jobcode-input form-control-plaintext pe-4"
+                                                       name="JobCode"
+                                                       value="@d?.JobID"
+                                                       readonly
+                                                       placeholder="เลือกงาน..." />
+                                                <i class="ti ti-search text-muted position-absolute end-0 top-50 translate-middle-y me-2 small search-icon color-orange"></i>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @d?.JobID
+
+                                        }
+
+                                    </td>
+                                    <td class="text-start">
+                                        @if (Model?.SYS_Status == "P03")
+                                        {
+                                            <input type="text"
+                                                   class="form-control-plaintext jobname-display"
+                                                   value="@d?.V_WH_JobDepartment?.JobName"
+                                                   readonly />
+                                        }
+                                        else
+                                        {
+                                            @d?.V_WH_JobDepartment?.JobName
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                        }
+
+
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model?.SYS_Status != null && Model?.SYS_Status != "P01" && Model?.SYS_Status != "C01" && Model?.SYS_Status != "P03")
+            {
+                <!-- ตรวจสอบใบรับของ -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h3 class="card-title">พัสดุตรวจสอบการจ่าย</h3>
+                    </div>
+                    <div class="card-body" id="couseApprove1">
+
+                        <!-- สถานะการอนุมัติ -->
+                        <div class="mb-3 row">
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">สถานะ:</label>
+                            <div class="col-md-10 col-12">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" disabled="@(approve1)" name="Approve2Status" id="approve1" value="Y"
+                                           @(Model?.Approve2Status == "Y" ? "checked" : "")>
+                                    <label class="form-check-label text-success fw-bold" for="approve1">อนุมัติ</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" disabled="@(approve1)" name="Approve2Status" id="reject1" value="N"
+                                           @(Model?.Approve2Status == "N" ? "checked" : "")>
+                                    <label class="form-check-label text-danger fw-bold" for="reject1">ไม่อนุมัติ</label>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- หมายเหตุ -->
+                        <div class="mb-3 row">
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">หมายเหตุ</label>
+                            <div class="col-md-10 col-12">
+                                <textarea class="form-control" disabled="@(Model?.SYS_Status != "P04" && Model?.SYS_Status != null ? true : false)" asp-for="@Model.Approve2Remark" id="EqCheckRemark" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- ผู้อนุมัติและวันที่ -->
+                        <div class="mb-3 row">
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">ผู้อนุมัติ:</label>
+                            <div class="col-md-4 col-12 col-form-label mb-2 mb-md-0">@Model?.Approve1Name</div>
+                            <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">วันที่:</label>
+                            <div class="col-md-4 col-12 col-form-label">@Model?.Approve1DateTH</div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+            <!-- Buttons -->
+            <div class="row mb-4 mt-4">
+                <div class="col-12 d-flex justify-content-center">
+                    <div class="btn-list">
+
+
+                        @if ((Model?.SYS_Status == "P04" && ViewBag.approve2 == true))
+                        {
+                            <button type="button" class="btn btn-success" onclick="Approve('@Model?.RunningID','@Model?.SYS_Status')">
+                                <i class="ti ti-device-floppy me-1"></i> บันทึก
+                            </button>
+                        }
+                        else if ((Model?.SYS_Status == "P03"))
+                        {
+                            <button type="button" class="btn btn-success" onclick="Save('N');">
+                                <i class="ti ti-device-floppy me-1"></i> บันทึก
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="Save('Y');">
+                                <i class="ti ti-send me-1"></i> บันทึกและส่ง
+                            </button>
+
+                        }
+
+                        <a href="@Url.Action("List", "Requisition", new { statusPage = Model?.SYS_Status });" class="btn btn-outline-danger btn-md waves-effect waves-light" role="button">ปิด หน้านี้</a>
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="jobModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="ti ti-briefcase"></i> เลือกรหัสงาน</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="jobSearchBox" class="form-control mb-3" placeholder="ค้นหางาน...">
+                <div class="list-group" id="jobList">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="serialModal" tabindex="-1">
+         <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="ti ti-barcode"></i> เลือก Serial No.</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="serialSearchBox" class="form-control mb-3" placeholder="ค้นหา Serial...">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered" id="serialTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-center">เลือก</th>
+
+                                    <th>Serial No.</th>
+                                    <th>รหัสสินค้า</th>
+                                    <th>ชื่อสินค้า</th>
+                                    <th>Lot No.</th>
+                                    <th>จำนวนคงเหลือ</th>
+                                    <th>วันหมดอายุ</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- ผลลัพธ์ AJAX จะมาแสดงที่นี่ -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@section scripts {
+    <script src="~/dist/libs/litepicker/dist/litepicker.js"></script>
+    <script>
+         function Approve(id,sys){
+                    let status = $("input[name='Approve2Status']:checked").val();
+                    let remark = $("#Approve2Remark").val();
+                    let runningId = id; // สมมติว่า id อยู่ใน span หรือ hidden input
+                    if (!status) {
+                        showWarning("กรุณาเลือกสถานะการอนุมัติ");
+                        return;
+                    }
+                    $.ajax({
+                        url: '@Url.Action("ApproveEq", "Requisition")',
+                        type: "POST",
+                        data: {
+                            RunningID: runningId,
+                            sys: sys,
+                            Approve2Status: status,
+                            Approve2Remark: remark
+                        },
+                        success: function (res) {
+                            if (res.success) {
+                                var link = '@Url.Action("List", "Requisition", new { statusPage = "P04"  })';
+                                showSuccess("บันทึกสำเร็จ", link);
+                            } else {
+                                showWarning("เกิดข้อผิดพลาด: " + res.error);
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            showWarning("Error: " + error);
+                        }
+                    });
+            }
+         function Save(s) {
+                var send = false;
+                if (s == "Y") { send = true; } 
+
+                let data = [];
+                let valid = true; // flag สำหรับตรวจสอบว่าผ่านหรือไม่
+
+                $('#tblDetail tbody tr').each(function (index) {
+                    let row = $(this);
+                    let itemID = row.find('td:nth-child(2)').text().trim();
+                    let qty = row.find('input[name="QtyRequisition"]').val();
+                    let serialNo = row.find('input[name="SerialNo"]').val();
+                    let JobID = row.find('input[name="JobCode"]').val();
+
+                    // ✅ Validate SerialNo
+                    if (!serialNo || serialNo.trim() === "") {
+                        valid = false;
+                        row.find('input[name="SerialNo"]').addClass("is-invalid"); // highlight error
+                    } else {
+                        row.find('input[name="SerialNo"]').removeClass("is-invalid");
+                    }
+
+                    data.push({
+                        ItemID: itemID,
+                        QtyRequisition: qty,
+                        SerialNo: serialNo,
+                        JobID: JobID,
+                    });
+                });
+
+                // ถ้าไม่ผ่าน validation
+                if (!valid) {
+                    showWarning("กรุณากรอก Serial No ให้ครบ");
+                    return; // ❌ หยุดการทำงาน ไม่ส่งไป controller
+                }
+
+                var item = { 
+                    RunningID: $("#RunningID").html(), 
+                    WH_PR_RequisitionDetail: data,
+                    send: send,
+                };
+
+                var url = '@Url.Action("SavePay", "Requisition")';
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: "json",
+                    data: item,
+                    beforeSend: function () {
+                        ShowLoading();
+                    },
+                    success: function (res) {
+                        if (res.success) {
+                            let link = "";
+                            if (send) {
+                                link = '@Url.Action("List", "Requisition", new { statusPage = "P03" })';
+                            } else if ($("#RunningID").html() != "") {
+                                link = window.location.href;
+                            } else {
+                                link = '@Url.Action("Detail", "Requisition")' + "?ID=" + res.id;
+                            }
+                            showSuccess("บันทึกสำเร็จ", link);
+                        }
+                        ShowLoading(false);
+                    },
+                    error: function (err) {
+                        showWarning("เกิดข้อผิดพลาดในการบันทึก");
+                        ShowLoading(false);
+                    }
+                });
+            }
+
+
+        $(document).on('click', '.editable-input[readonly]', function () {
+            $(this)
+                .removeClass("form-control-plaintext")
+                .addClass("form-control form-control-sm")
+                .prop("readonly", false)
+                .focus()
+                .select();
+        });
+
+        $(document).on('blur', '.editable-input:not([readonly])', function () {
+            $(this)
+                .removeClass("form-control form-control-sm")
+                .addClass("form-control-plaintext")
+                .prop("readonly", true);
+        });
+
+        $(document).on('keydown', '.editable-input', function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                $(this).blur();
+            } else if (e.key === "Escape") {
+                $(this).blur();
+            }
+        });
+
+        let currentInput = null;
+        let id = null;
+
+        // เปิด modal เมื่อคลิกช่องรหัสงาน
+        $(document).on('click', '.jobcode-input', function () {
+            currentInput = $(this);
+            $('#jobModal').modal('show');
+            $('#jobResultTable tbody').empty(); // ล้างผลเก่า
+        });
+
+
+
+        $('#jobSearchBox').on('keyup', function () {
+                let keyword = $(this).val().trim();
+
+                if (keyword.length < 3) {
+                    $('#jobList').html(''); // ล้างผลลัพธ์ถ้ายังไม่ถึง 3 ตัว
+                    return;
+                }
+
+                $.get('@Url.Action("JobSearch", "Requisition")', { q: keyword }, function (res) {
+                    let items = '';
+                    if (res && res.length > 0) {
+                        res.forEach(job => {
+                            items += `
+                                <a href="#" class="list-group-item list-group-item-action select-job"
+                                   data-code="${job.jobID}" data-name="${job.jobName}">
+                                    ${job.jobID} - ${job.jobName}
+                                </a>`;
+                        });
+                    } else {
+                        items = `<div class="list-group-item text-muted text-center">ไม่พบข้อมูล</div>`;
+                    }
+                    $('#jobList').html(items);
+                });
+            });
+
+// เลือกงาน
+            $(document).on('click', '.select-job', function (e) {
+                e.preventDefault();
+                const code = $(this).data('code');
+                const name = $(this).data('name');
+
+                if (currentInput) {
+                    currentInput.val(code);
+                    currentInput.closest('tr').find('.jobname-display').val(name);
+                }
+
+                $('#jobModal').modal('hide');
+            });
+
+
+        $(document).on('click', '.search-icon', function () {
+            currentInput = $(this).siblings('.serial-input');
+            id = currentInput.data("codeid");
+
+            $('#serialModal').modal('show');
+            $('#serialList').html('');
+            Getdata("");
+        });
+
+        
+
+
+        // เลือก Serial
+        $(document).on('click', '.select-serial', function (e) {
+            e.preventDefault();
+            if (currentInput) {
+                currentInput.val($(this).data('serial'));
+            }
+            $('#serialModal').modal('hide');
+            id = "";
+        }); 
+
+        $('#serialSearchBox').on('keyup', function() {
+                let keyword = $(this).val().trim();
+
+                if (keyword.length < 3) {
+                    $('#serialTable tbody').html(''); // ล้างผลลัพธ์ถ้ายังไม่ถึง 3 ตัว
+                    return;
+                } 
+               Getdata(keyword); 
+            });
+
+
+        function Getdata(keyword) {
+                 $.get('@Url.Action("SerialSearch", "Requisition")', { q: keyword, id: id }, function(res) {
+                                    let rows = '';
+                                    if (res && res.length > 0) {
+                                        res.forEach(s => {
+                                            rows += `
+                                                <tr>
+                                                    <td class="text-center">
+                                                        <button type="button" class="btn btn-sm btn-success select-serial"
+                                                                data-serial="${s.serialNo}">เลือก</button>
+                                                    </td>
+                                                    <td>${s.serialNo}</td>
+                                                    <td>${s.codeID}</td>
+                                                    <td>${s.codeName}</td>
+                                                    <td>${s.lotNo}</td>
+                                                    <td class="text-end">${s.qtyRemain}</td>
+                                                    <td>${s.expireDateTH}</td>
+                                                    <td>${s.locationID}</td>
+                                                </tr>`;
+                                        });
+                                    } else {
+                                        rows = `<tr><td colspan="8" class="text-center text-muted">ไม่พบข้อมูล</td></tr>`;
+                                    }
+                                    $('#serialTable tbody').html(rows);
+                            });
+        }
+
+    </script>
+
+
+
+}

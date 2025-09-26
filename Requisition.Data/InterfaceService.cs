@@ -13,6 +13,16 @@ namespace Requisition.Data
     
 
 
+    public interface IVItemNameRepository : IRepository<V_WH_MT_ItemName>
+    {
+    }
+    public class VItemNameRepository : Repository<V_WH_MT_ItemName>, IVItemNameRepository
+    {
+        public VItemNameRepository(Context repositoryContext)
+            : base(repositoryContext)
+        {
+        }
+    }
     public interface IJobDepartmentRepository : IRepository<V_WH_JobDepartment>
     {
     }
@@ -297,8 +307,8 @@ namespace Requisition.Data
                                                                     .Where(l =>
                                                                          (l.RunningID.Contains(search.RunningID) ||  string.IsNullOrEmpty(search.RunningID))
                                                                         && (l.RequisitionNo.Contains(search.RequestNo) ||  string.IsNullOrEmpty(search.RequestNo))
-                                                                        && (l.DepartmentID.StartsWith(search.DepartmentID) || l.DepartmentID.Contains(search.critiriaVendor) ||  string.IsNullOrEmpty(search.critiriaVendor))
-                                                                         //&& (l.DepartmentID.StartsWith(search.DepartmentID) || string.IsNullOrEmpty(search.DepartmentID)) 
+                                                                        && (l.DepartmentID.StartsWith(search.DepartmentID) || l.DepartmentID.Contains(search.DepartmentID) ||  string.IsNullOrEmpty(search.DepartmentID))
+                                                                        && (l.RequisitionType.StartsWith(search.TypeID) || string.IsNullOrEmpty(search.TypeID)) 
 
                                                                     );
 
@@ -306,12 +316,7 @@ namespace Requisition.Data
 
                 if (search.DateStartFrom != default(DateTime) && search.DateStartTo != default(DateTime)) { items = items.Where(e => search.DateStartFrom.Date <= e.RequisitionDate.Value.Date && e.RequisitionDate.Value.Date <= search.DateStartTo.Date); }
 
-                if (items != null)
-                {
-                    items = items.Where(p => search.DepartmentPermistions.Any(s =>
-                       (p.DepartmentID.Length <= 4 && p.DepartmentID == s)
-                       || (p.DepartmentID.Length > 4 && p.DepartmentID.Substring(0, 4) == s)));
-                }
+               
 
                 search.sorting = String.IsNullOrEmpty(search.sorting) ? "RunningID" : search.sorting;
                 search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort;

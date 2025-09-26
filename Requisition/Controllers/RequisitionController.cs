@@ -68,12 +68,28 @@ namespace Requisition.Controllers
             return userPrivilege.Any(l => l.SYS_Status == SYS_Status && l.RightCode == RightCode);
         }
         [HttpGet]
-        public IActionResult SearchStock(string keyword)
+        public IActionResult SearchStock(string keyword, string RequisitionType)
         {
-            var data = _repo.ItemName
-                .FindByCondition(x => string.IsNullOrEmpty(keyword)
+            string typeId = "";
+            switch (RequisitionType)
+            {
+                case "001":
+                    typeId = "RM";
+                    break;
+                case "002":
+                    typeId = "WH";
+                    break;
+
+                default:
+                    break;
+            }
+            var data = _repo.VItemName
+                .FindByCondition(x => (string.IsNullOrEmpty(keyword)
                          || x.ItemID.Contains(keyword)
-                         || x.ItemNameTH.Contains(keyword))
+                         || x.ItemNameTH.Contains(keyword)) 
+                        && ( x.WarehouseTypeID.Contains(typeId))   
+
+                         )
                 .Select(x => new
                 {
                      CodeID = x.ItemID,
@@ -111,11 +127,26 @@ namespace Requisition.Controllers
             return View(result);
         }
         [HttpGet]
-        public IActionResult SearchRequisitionFromPO(string DepartmentID, string RequisitionNo, string ProductCode, string DateStart, string DateEnd)
+        public IActionResult SearchRequisitionFromPO(string DepartmentID, string RequisitionNo, string ProductCode, string DateStart, string DateEnd , string ReceivingType)
         {
+            string typeId = "";
+            switch (ReceivingType)
+            {
+                case "001":
+                    typeId = "RM";
+                    break;
+                case "002":
+                    typeId = "WH";
+                    break;
+
+                default:
+                    break;
+            }
+
             var item = _repo.VRequisitionReceiving.FindByCondition(l =>
                                                                 (l.DepartmentID.StartsWith(DepartmentID) || string.IsNullOrEmpty(DepartmentID)) && 
-                                                                (l.RequisitionNo.Contains(RequisitionNo) || string.IsNullOrEmpty(RequisitionNo)) && 
+                                                                (l.RequisitionNo.Contains(RequisitionNo) || string.IsNullOrEmpty(RequisitionNo))  
+                                                                &&(l.WarehouseTypeID.Contains(typeId)) && 
                                                                 (l.ProductCode.Contains(ProductCode) || string.IsNullOrEmpty(ProductCode))  
 
             ).Select(x => new
@@ -341,30 +372,25 @@ namespace Requisition.Controllers
             if (!string.IsNullOrEmpty(Search.receiveDateStart)) { Search.DateStartFrom = Search.receiveDateStart.stringToDateTime(); }
             if (!string.IsNullOrEmpty(Search.receiveDateEnd)) { Search.DateStartTo = Search.receiveDateEnd.stringToDateTime(); }
             var ViewAll = false;
-            var DepPartment = new List<HR_MT_Department>();
-
+            var DepPartment = new List<HR_MT_Department>(); 
+           
             switch (Search.statusPage)
             {
                 case "P01":
-                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P01" }).ToList();
-                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P01" && l.RightCode == "RC00"));
+                     ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P01" && l.RightCode == "RC00"));
                     break;
                 case "P02":
-                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P02" }).ToList();
-                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P02") && l.RightCode == "RCA1");
+                     ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P02") && l.RightCode == "RCA1");
                     break;
                 case "P03":
-                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P03" }).ToList();
-                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P03") && l.RightCode == "RCA2");
+                     ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P03") && l.RightCode == "RCA2");
                     break;
                 case "P04":
-                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P04" }).ToList();
-                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P04") && l.RightCode == "RCA3");
+                     ViewAll = userPrivilege.Any(l => (l.SYS_Status == "P04") && l.RightCode == "RCA3");
                     break;
                 case "F01":
                 case "C01":
-                    DepPartment = GetDepartmentByPermissionGetList(new List<string> { "F01" }).ToList();
-                    ViewAll = userPrivilege.Any(l => (l.SYS_Status == "F01") && l.RightCode == "RC00");
+                     ViewAll = userPrivilege.Any(l => (l.SYS_Status == "F01") && l.RightCode == "RC00");
                     break;
                 default:
                     break;
@@ -372,8 +398,7 @@ namespace Requisition.Controllers
 
             if (!ViewAll) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
             ViewBag.ViewEdit =  CheckPer("P01", "RC01");
-            Search.DepartmentPermistions = DepPartment.Select(l => l.DepartmentID).ToList();
-
+ 
             var ListItemss = _repo.RequisitionHeader.GetDataList(Search);
             var _TypeID =
                     new List<SelectListItem>
@@ -382,6 +407,7 @@ namespace Requisition.Controllers
                             new SelectListItem {Text = "รับบรรจุภัณฑ์", Value = "002"},
                     };
             ViewBag.TypeID = new SelectList(_TypeID, "Value", "Text", Search?.TypeID);
+            ViewBag.DepartmentID = new SelectList(_repo.MT_Department.FindByCondition(d=>d.UsageStatus == true && d.DepartmentID.Length < 6).ToList(), "DepartmentID", "DepartmentIDAndName", Search?.DepartmentID); 
             return View(ListItemss);
         }
 

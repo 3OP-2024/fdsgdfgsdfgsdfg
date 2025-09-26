@@ -11,8 +11,9 @@ namespace Requisition.Data
         public Wrapper(Context repositoryContext)
         {
             _repoContext = repositoryContext;
-        } 
-
+        }
+         
+        public IVItemNameRepository VItemName => new  VItemNameRepository(_repoContext);
         public IJobDepartmentRepository JobDepartment => new JobDepartmentRepository(_repoContext);
         public IRequisitionDetailRepository RequisitionDetail => new  RequisitionDetailRepository(_repoContext);
         public IRequisitionHeaderRepository RequisitionHeader => new  RequisitionHeaderRepository(_repoContext);

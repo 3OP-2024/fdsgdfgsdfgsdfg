@@ -20,6 +20,7 @@
         .jobcode-input {
             cursor: pointer;
         }
+
         .editable-input[readonly] {
             cursor: pointer;
             border-bottom: 1px dashed #ccc;
@@ -147,6 +148,7 @@
             color: var(--tblr-list-group-action-color);
             text-align: inherit;
         }
+
         .form-check-input[type=checkbox] {
             border: 2px solid #000;
             border-radius: var(--tblr-border-radius);
@@ -181,7 +183,7 @@
                 </div>
                 <div class="col-md-2 d-none d-md-block"></div>
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">
-                    วันที่เบิกของ : 
+                    วันที่เบิกของ :
                 </label>
                 <div class="col-md-2 col-12">
                     <div class="input-group">
@@ -203,12 +205,12 @@
                     แผนกที่เขียนใบเบิก:
                 </label>
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
-                    <select class="form-select" name="DepartmentID" id="DepartmentID"  disabled="@(DisableDDlType)"   asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
+                    <select class="form-select" name="DepartmentID" id="DepartmentID" disabled="@(DisableDDlType)" asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
 
                 </div>
                 <div class="col-md-2 d-none d-md-block"></div>
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">
-                    เลขที่ใบเบิกพัสดุ : 
+                    เลขที่ใบเบิกพัสดุ :
                 </label>
                 <div class="col-md-2 col-12">
                     <input type="text" class="form-control  " id="RequisitionNo" @Disable name="RequisitionNo" value="@Model?.RequisitionNo" placeholder="เลขที่ใบเบิกพัสดุ">
@@ -240,7 +242,7 @@
                                 </button>
                             </div>}
                     }
-               </div>
+                </div>
             </div>
 
 
@@ -267,51 +269,51 @@
                         {
                             @foreach (var d in Model?.WH_PR_RequisitionDetail)
                             {
-                        <tr class="text-center">
-                            <td>@d.ItemOrder</td>
-                            <td class="text-left">@d?.ItemID</td>
-                            <td class="text-start">@d?.WH_MT_ItemName?.ItemNameTH</td>
-                            <td class="text-right">@d?.Quantity</td>
-                            <td class="text-right">
-                                <input type="number" required class="form-control form-control-sm text-right" @Disable value="@d?.QtyRequisition" name="QtyRequisition">
-                            </td>
-                            <td>@d?.WH_MT_ItemName?.UnitNameTH</td>
-                            <td>
-                                <textarea class="form-control w-100" @Disable name="Remark"
-                                          rows="2" maxlength="200"
-                                          style="resize: vertical; overflow:auto;">@d?.Remark</textarea>
-                            </td>
-                            <td class="text-start">
-                                <div class="editable-wrapper position-relative d-inline-block w-100">
-                                    <input type="text"
-                                           class="jobcode-input form-control-plaintext pe-4"
-                                           name="JobCode"
-                                           value="@d?.JobID"
-                                           readonly
-                                           placeholder="เลือกงาน..." />
-                                    <i class="ti ti-search text-muted position-absolute end-0 top-50 translate-middle-y me-2 small search-icon color-orange"></i>
-                                </div>
-                            </td>
-                            <td class="text-start">
-                                <input type="text"
-                                       class="form-control-plaintext jobname-display"
-                                       value="@d?.V_WH_JobDepartment?.JobName"
-                                       readonly />
-                            </td>
-                            <td>
-                                @if (string.IsNullOrEmpty(Disable))
-                                {
-                                    if (ViewBag.Edit)
-                                    {
-                                        <button type="button" class="btn btn-danger btn-sm me-1 remove-row">
-                                            <i class="ti ti-trash"></i>
-                                        </button>
+                                <tr class="text-center">
+                                    <td>@d.ItemOrder</td>
+                                    <td class="text-left">@d?.ItemID</td>
+                                    <td class="text-start">@d?.WH_MT_ItemName?.ItemNameTH</td>
+                                    <td class="text-right">@d?.Quantity</td>
+                                    <td class="text-right">
+                                        <input type="number" required class="form-control form-control-sm text-right" @Disable value="@d?.QtyRequisition" name="QtyRequisition">
+                                    </td>
+                                    <td>@d?.WH_MT_ItemName?.UnitNameTH</td>
+                                    <td>
+                                        <textarea class="form-control w-100" @Disable name="Remark"
+                                                  rows="2" maxlength="200"
+                                                  style="resize: vertical; overflow:auto;">@d?.Remark</textarea>
+                                    </td>
+                                    <td class="text-start">
+                                        <div class="editable-wrapper position-relative d-inline-block w-100">
+                                            <input type="text"
+                                                   class="jobcode-input form-control-plaintext pe-4"
+                                                   name="JobCode"
+                                                   value="@d?.JobID"
+                                                   readonly
+                                                   placeholder="เลือกงาน..." />
+                                            <i class="ti ti-search text-muted position-absolute end-0 top-50 translate-middle-y me-2 small search-icon color-orange"></i>
+                                        </div>
+                                    </td>
+                                    <td class="text-start">
+                                        <input type="text"
+                                               class="form-control-plaintext jobname-display"
+                                               value="@d?.V_WH_JobDepartment?.JobName"
+                                               readonly />
+                                    </td>
+                                    <td>
+                                        @if (string.IsNullOrEmpty(Disable))
+                                        {
+                                            if (ViewBag.Edit)
+                                            {
+                                                <button type="button" class="btn btn-danger btn-sm me-1 remove-row">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
 
 
-                                    }
-                                }
-                            </td>
-                        </tr>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
                             }
                         }
 
@@ -622,7 +624,7 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-center">
-             </div>
+            </div>
         </div>
     </div>
 </div>
@@ -630,7 +632,11 @@
 
 @section scripts {
     <script src="~/dist/libs/litepicker/dist/litepicker.js"></script>
+  
+
     <script>
+
+
 
         $(document).on('click', '.editable-input[readonly]', function () {
             $(this)
@@ -661,14 +667,14 @@
         let id = null;
 
         // เปิด modal เมื่อคลิกช่องรหัสงาน
-      
+
         $(document).on('click', '.jobcode-input', function () {
             console.log(11);
                 currentInput = $(this); // เก็บ input ที่กดไว้
                 $('#jobModal').modal('show');
                 $('#jobResultTable tbody').empty(); // clear ตารางเดิม
             });
-        
+
 
 
          $('#jobSearchBox').on('keyup', function () {
@@ -736,27 +742,27 @@
                                         <td>${name}</td>
                                         <td class="text-center">${qty}</td>
                                         <td class="text-right">
-                                            <input type="number" 
-                                                   class="form-control form-control-sm text-center"   
-                                                   name="QtyRequisition" 
-                                                   value="${received}" 
-                                                   min="${qty}" 
+                                            <input type="number"
+                                                   class="form-control form-control-sm text-center"
+                                                   name="QtyRequisition"
+                                                   value="${received}"
+                                                   min="${qty}"
                                                    max="${qty}" />
                                         </td>
                                         <td class="text-center">${unit}</td>
                                         <td>
-                                            <textarea class="form-control w-100"  
+                                            <textarea class="form-control w-100"
                                                       name="Remark"
-                                                      rows="2" 
+                                                      rows="2"
                                                       maxlength="200"
                                                       style="resize: vertical; overflow:auto;"> </textarea>
-                                        </td>  
+                                        </td>
                                        <td class="text-start">
                                                 <div class="editable-wrapper position-relative d-inline-block w-100">
                                                     <input type="text"
                                                            class="jobcode-input form-control-plaintext pe-4"
                                                            name="JobCode"
-                                                           
+
                                                            readonly
                                                            placeholder="เลือกงาน..." />
                                                     <i class="ti ti-search text-muted position-absolute end-0 top-50 translate-middle-y me-2 small search-icon color-orange"></i>
@@ -764,9 +770,9 @@
                                             </td>
                                             <td class="text-start">
                                                 <input type="text"
-                                                       class="form-control-plaintext jobname-display" 
+                                                       class="form-control-plaintext jobname-display"
                                                        readonly />
-                                            </td> 
+                                            </td>
                                         <td class="text-center">
                                               <button type="button" class="btn btn-danger btn-sm me-1 remove-row">
                                                 <i class="ti ti-trash"></i>
@@ -783,11 +789,11 @@
         $(document).ready(function () {
             // กดปุ่มค้นหา
             $("#btnSearchStock").click(function () {
-                var keyword = $("#txtSearchStock").val(); 
+                var keyword = $("#txtSearchStock").val();
                 $.ajax({
-                    url:  '@Url.Action("SearchStock", "Requisition")',   // 👉 Controller/Action ที่จะไปดึงข้อมูล 
+                    url:  '@Url.Action("SearchStock", "Requisition")',   // 👉 Controller/Action ที่จะไปดึงข้อมูล
                     type: 'GET',
-                    data: { keyword: keyword },
+                    data: { keyword: keyword, RequisitionType: $("#RequisitionType").val() },
                     success: function (res) {
                         var rows = "";
                         $.each(res, function (i, item) {
@@ -796,13 +802,13 @@
                                 <td class="text-center">
                                     <button type="button"
                                             class="btn btn-sm btn-warning btnSelectStock"
-                                            data-id="${item.codeID}" 
-                                            data-code="${item.codeID}" 
-                                            data-name="${item.codeName}" 
-                                            data-qty="${item.totalQuantity}" 
+                                            data-id="${item.codeID}"
+                                            data-code="${item.codeID}"
+                                            data-name="${item.codeName}"
+                                            data-qty="${item.totalQuantity}"
                                             data-unit="${item.unitNameTH}">
                                         เลือก
-                                    </button>                          
+                                    </button>
                                 </td>
                                 <td>${item.codeID}</td>
                                 <td>${item.codeName}</td>
@@ -830,21 +836,21 @@
         });
           function Save(s) {
             var send = false;
-            if (s == "Y") { send = true; } 
+            if (s == "Y") { send = true; }
             var hasError = false;
             var details = [];
             $("#tblDetail tbody tr").each(function () {
-                var row = $(this); 
-                var detailItem = {  
-                    ItemOrder: row.find("td:eq(0)").text().trim(),  
-                    ItemID: row.find("td:eq(1)").text().trim(),  
-                    Quantity: row.find("td:eq(3)").text().trim(), 
-                    QtyRequisition: row.find("input[name='QtyRequisition']").val(), 
-                    Remark: row.find("textarea[name='Remark']").val(), 
+                var row = $(this);
+                var detailItem = {
+                    ItemOrder: row.find("td:eq(0)").text().trim(),
+                    ItemID: row.find("td:eq(1)").text().trim(),
+                    Quantity: row.find("td:eq(3)").text().trim(),
+                    QtyRequisition: row.find("input[name='QtyRequisition']").val(),
+                    Remark: row.find("textarea[name='Remark']").val(),
                     JobID: row.find('input[name="JobCode"]').val()
                 };
 
-               
+
 
                 details.push(detailItem);
             });
@@ -852,11 +858,11 @@
                 showWarning(errorMsg);
                 return false;
             }
-           
 
-            var item = { 
+
+            var item = {
                 RunningID: $("#RunningID").html(),
-                DepartmentID: $("#DepartmentID").val(), 
+                DepartmentID: $("#DepartmentID").val(),
                 RequisitionDateStr: $("input[name ='RequisitionDate']").val(),
                 RequisitionNo: $("#RequisitionNo").val(),
                 RequisitionType: $("#RequisitionType").val(),
@@ -906,6 +912,7 @@
                             RequisitionNo: $("#txtRequisitionNo").val(),
                             ProductCode: $("#txtProductCode").val(),
                             DateStart: $("#txtDateStart").val(),
+                            ReceivingType: $("#RequisitionType").val(),
                             DateEnd: $("#txtDateEnd").val()
                         };
 
@@ -982,7 +989,7 @@
                                     <td><input type="number" class="form-control form-control-sm text-center"   name="QtyRequisition" value="${received}" /></td>
                                     <td>${unit}</td>
                                     <td> <textarea class="form-control w-100"  name="Remark"
-                                               
+
                                               rows="2" maxlength="200"
                                               style="resize: vertical; overflow:auto;">${remark}</textarea></td>
                                     <td class="text-start">
@@ -990,7 +997,7 @@
                                                     <input type="text"
                                                            class="jobcode-input form-control-plaintext pe-4"
                                                            name="JobCode"
-                                                           
+
                                                            readonly
                                                            placeholder="เลือกงาน..." />
                                                     <i class="ti ti-search text-muted position-absolute end-0 top-50 translate-middle-y me-2 small search-icon color-orange"></i>
@@ -998,9 +1005,9 @@
                                             </td>
                                             <td class="text-start">
                                                 <input type="text"
-                                                       class="form-control-plaintext jobname-display" 
+                                                       class="form-control-plaintext jobname-display"
                                                        readonly />
-                                            </td> 
+                                            </td>
                                     <td class="text-center"> <button type="button" class="btn btn-danger btn-sm me-1 remove-row">
                                                 <i class="ti ti-trash"></i>
                                             </button></td>
@@ -1077,6 +1084,6 @@
                     });
             };
 
-         
+
     </script>
 }

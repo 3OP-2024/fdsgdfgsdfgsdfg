@@ -16,6 +16,7 @@ namespace Requisition.Models
 
         [StringLength(7)]
         public string ProductCode { get; set; }
+        public string WarehouseTypeID { get; set; }
 
         [StringLength(200)]
         public string ProductName { get; set; }

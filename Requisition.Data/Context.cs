@@ -15,7 +15,9 @@ namespace Requisition.Data
               : base(options)
         {
         }
+        public virtual DbSet<V_WH_MT_ItemName> V_WH_MT_ItemName { get; set; }
         public virtual DbSet<V_WH_JobDepartment> V_WH_JobDepartment { get; set; }
+        public virtual DbSet<WH_RP_GroupParcel> WH_RP_GroupParcel { get; set; }
 
         public virtual DbSet<WH_PR_RequisitionDetail> WH_PR_RequisitionDetail { get; set; }
         public virtual DbSet<WH_PR_RequisitionHeader> WH_PR_RequisitionHeader { get; set; }

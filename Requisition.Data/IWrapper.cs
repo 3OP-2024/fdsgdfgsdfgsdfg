@@ -6,6 +6,7 @@ namespace Requisition.Data
 {
     public interface IWrapper
     {
+        IVItemNameRepository VItemName { get; } 
         IJobDepartmentRepository JobDepartment { get; } 
         IRequisitionDetailRepository RequisitionDetail { get; } 
         IRequisitionHeaderRepository  RequisitionHeader  { get; } 

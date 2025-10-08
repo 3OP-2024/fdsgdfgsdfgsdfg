@@ -247,12 +247,21 @@
 
 
 
+            <div class="row mb-3">
+                <div class="col-8">
+                    <div class="d-flex align-items-center p-2">
+                         
+                        &nbsp; &nbsp; &nbsp;
+                        <span>จำนวนทั้งหมด = @Model?.WH_PR_RequisitionDetail?.Count() รายการ</span>
+                    </div>
+                </div>
+            </div>
             <!-- Table -->
             <div class="table-responsive">
                 <table class="table table-hover" id="tblDetail">
                     <thead>
                         <tr class="text-center">
-                            <th>ลำดับ</th>
+                            <th>ItemOrder</th>
                             <th>รหัสสินค้า</th>
                             <th>ชื่อสินค้า</th>
                             <th>จำนวน</th>
@@ -396,9 +405,9 @@
                         @{
                             string closeUrl;
 
-                            if (Search?.statusPage == "F02")
+                            if (Search?.statusPage == "P05")
                             {
-                                closeUrl = Url.Action("ListAs400", "Requisition", new { statusPage = "F02" });
+                                closeUrl = Url.Action("ListAs400", "Requisition", new { statusPage = "P05" });
                             }
                             else
                             {
@@ -672,7 +681,8 @@
             console.log(11);
                 currentInput = $(this); // เก็บ input ที่กดไว้
                 $('#jobModal').modal('show');
-                $('#jobResultTable tbody').empty(); // clear ตารางเดิม
+            $('#jobResultTable tbody').empty(); // clear ตารางเดิม
+            Search('');
             });
 
 
@@ -684,24 +694,27 @@
                     $('#jobList').html(''); // ล้างผลลัพธ์ถ้ายังไม่ถึง 3 ตัว
                     return;
                 }
-
-                $.get('@Url.Action("JobSearch", "Requisition")', { q: keyword }, function (res) {
-                    let items = '';
-                    if (res && res.length > 0) {
-                        res.forEach(job => {
-                            items += `
-                                <a href="#" class="list-group-item list-group-item-action select-job"
-                                   data-code="${job.jobID}" data-name="${job.jobName}">
-                                    ${job.jobID} - ${job.jobName}
-                                </a>`;
-                        });
-                    } else {
-                        items = `<div class="list-group-item text-muted text-center">ไม่พบข้อมูล</div>`;
-                    }
-                    $('#jobList').html(items);
-                });
+                Search(keyword);
             });
 
+
+        function Search(keyword) {
+                 $.get('@Url.Action("JobSearch", "Requisition")', { q: keyword }, function (res) {
+                        let items = '';
+                        if (res && res.length > 0) {
+                            res.forEach(job => {
+                                items += `
+                                    <a href="#" class="list-group-item list-group-item-action select-job"
+                                       data-code="${job.jobID}" data-name="${job.jobName}">
+                                        ${job.jobID} - ${job.jobName}
+                                    </a>`;
+                            });
+                        } else {
+                            items = `<div class="list-group-item text-muted text-center">ไม่พบข้อมูล</div>`;
+                        }
+                        $('#jobList').html(items);
+                    });
+        }
 // เลือกงาน
             $(document).on('click', '.select-job', function (e) {
                 e.preventDefault();

@@ -65,6 +65,7 @@ namespace Template_Tabler.Controllers
             ViewBag.numberP03 = _repo.RequisitionHeader.FindByCondition(l => l.SYS_Status == "P03").Count() ;
             ViewBag.numberP04 = _repo.RequisitionHeader.FindByCondition(l => l.SYS_Status == "P04").Count() ;
             ViewBag.numberF01 = _repo.RequisitionHeader.FindByCondition(l => l.SYS_Status == "F01").Count() ;
+            ViewBag.numberF02 = _repo.RequisitionHeader.FindByCondition(l => l.SYS_Status == "F01" && l.IsUpAs400 == false).Count() ;
 
             
             return View();

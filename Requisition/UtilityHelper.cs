@@ -8,6 +8,24 @@ namespace Requisition
     public static class UtilityHelper
     {
         public static int ProgramId { get { return 6004; } }
+        public static string GetTypeRecei(string ReceivingType)
+        {
+            string typeId = "";
+            switch (ReceivingType)
+            {
+                case "001":
+                    typeId = "WH";
+                    break;
+                case "002":
+                    typeId = "RM";
+                    break;
+
+                default:
+                    break;
+            }
+            return typeId;
+
+        }
         public static DateTime stringToDateTime(this string stringDateTime)
         {
 

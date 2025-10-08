@@ -224,7 +224,7 @@
                     แผนกที่เขียนใบเบิก:
                 </label>
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
-                    <select class="form-select" name="DepartmentID" id="DepartmentID" disabled="@(DisableDDlType)" asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
+                    <select class="form-select" name="DepartmentID" id="DepartmentID" disabled  asp-items="@ViewBag.DepartmentID"><option value="">ทั้งหมด</option></select>
 
                 </div>
                 <div class="col-md-2 d-none d-md-block"></div>
@@ -232,7 +232,7 @@
                     เลขที่ใบเบิกพัสดุ :
                 </label>
                 <div class="col-md-2 col-12">
-                    <input type="text" class="form-control  " id="RequisitionNo" @Disable name="RequisitionNo" value="@Model?.RequisitionNo" placeholder="เลขที่ใบเบิกพัสดุ">
+                    <input type="text" class="form-control  " id="RequisitionNo" disabled name="RequisitionNo" value="@Model?.RequisitionNo" placeholder="เลขที่ใบเบิกพัสดุ">
 
                 </div>
             </div>
@@ -451,10 +451,25 @@
                             </button>
 
                         }
+                        @{
+                            string closeUrl;
 
-                        <a href="@Url.Action("List", "Requisition", new { statusPage = Model?.SYS_Status });" class="btn btn-outline-danger btn-md waves-effect waves-light" role="button">ปิด หน้านี้</a>
+                            if (Search?.statusPage == "P05")
+                            {
+                                closeUrl = Url.Action("ListAs400", "Requisition", new { statusPage = "P05" });
+                            }
+                            else
+                            {
+                                var status = string.IsNullOrEmpty(Model?.SYS_Status)
+                                             ? "P01"
+                                             : (Search?.statusPage == "P01"
+                                                ? Search?.statusPage
+                                                : (string.IsNullOrEmpty(Search?.statusPage) ? Model?.SYS_Status : Search?.statusPage));
 
-
+                                closeUrl = Url.Action("List", "Requisition", new { statusPage = status });
+                            }
+                        }
+                        <a href="@closeUrl" class="btn btn-outline-danger btn-md waves-effect waves-light" role="button">ปิด หน้านี้</a>
 
 
                     </div>

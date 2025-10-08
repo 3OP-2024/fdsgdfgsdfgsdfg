@@ -20,10 +20,10 @@ namespace Requisition.Models
                  switch (RequisitionType)
                 {
                     case "001":
-                        return "รับอะไหล่";
+                        return "เบิกอะไหล่";
 
                     case "002":
-                        return "รับบรรจุภัณฑ์";
+                        return "เบิกบรรจุภัณฑ์";
                     default:
                         return "";
                 }
@@ -198,7 +198,8 @@ namespace Requisition.Models
  
         [StringLength(11)]
         public string RequisitionNo { get; set; }
-        [NotMapped]
+        public bool IsUpAs400 { get; set; } = false;
+      [NotMapped]
         public string RequisitionDateStr { get; set; }
         public string Approve1DateTH
         {

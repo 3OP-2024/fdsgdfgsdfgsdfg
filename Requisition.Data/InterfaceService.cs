@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Requisition.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
@@ -288,6 +290,7 @@ namespace Requisition.Data
 
     public interface IRequisitionHeaderRepository : IRepository<WH_PR_RequisitionHeader>
     {
+        void UPAS400(string userId, List<string> runnings);
         string GetRunning();
         HelperPaging<WH_PR_RequisitionHeader> GetDataList(Search search);
     }
@@ -297,6 +300,27 @@ namespace Requisition.Data
             : base(repositoryContext)
         {
         }
+        public void UPAS400(string userId, List<string> runnings)
+        {
+            var tvp = new DataTable();
+            tvp.Columns.Add("Value", typeof(string));
+            foreach (var v in runnings)
+                tvp.Rows.Add(v);
+            var param = new SqlParameter("@Strings", SqlDbType.Structured)
+            {
+                TypeName = "dbo.StringList",
+                Value = tvp
+            };
+
+            var userParam = new SqlParameter("@userID", SqlDbType.NVarChar, 15)
+            {
+                Value = userId ?? "" // userId = string
+            };
+
+            this.RepositoryContext.Database
+                  .ExecuteSqlCommandAsync("EXEC dbo.USP_WH_WITHDRAW_UPAS400 @Strings, @userID", param, userParam);
+        }
+
         public HelperPaging<WH_PR_RequisitionHeader> GetDataList(Search search)
         {
             try
@@ -315,8 +339,16 @@ namespace Requisition.Data
 
 
                 if (search.DateStartFrom != default(DateTime) && search.DateStartTo != default(DateTime)) { items = items.Where(e => search.DateStartFrom.Date <= e.RequisitionDate.Value.Date && e.RequisitionDate.Value.Date <= search.DateStartTo.Date); }
+                if(search.statusPage != "P05")
+                {
+                    if (items != null)
+                    {
+                        items = items.Where(p => search.DepartmentPermistions.Any(s =>
+                           (p.DepartmentID.Length <= 4 && p.DepartmentID == s)
+                           || (p.DepartmentID.Length > 4 && p.DepartmentID.Substring(0, 4) == s)));
+                    }
 
-               
+                }
 
                 search.sorting = String.IsNullOrEmpty(search.sorting) ? "RunningID" : search.sorting;
                 search.currentSort = String.IsNullOrEmpty(search.currentSort) ? "" : search.currentSort;
@@ -349,7 +381,10 @@ namespace Requisition.Data
                         break;
                     case "P04":
                         items = items.Where(l => new List<string>() { "P04" }.Contains(l.SYS_Status));
-                        break; 
+                        break;
+                    case "P05":
+                        items = items.Where(l => new List<string>() { "F01" }.Contains(l.SYS_Status) && l.IsUpAs400 == false);
+                        break;
                     default:
                         items = items.Where(l =>
                             !new List<string>() { "C01", "F01", "P00" }.Contains(l.SYS_Status)

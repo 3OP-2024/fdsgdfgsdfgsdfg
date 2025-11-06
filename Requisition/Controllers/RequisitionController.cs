@@ -71,12 +71,13 @@ namespace Requisition.Controllers
         public IActionResult SearchStock(string keyword, string RequisitionType)
         {
             string typeId = UtilityHelper.GetTypeRecei(RequisitionType);
-           
+            
             var data = _repo.VItemName
                 .FindByCondition(x => (string.IsNullOrEmpty(keyword)
                          || x.ItemID.Contains(keyword)
                          || x.ItemNameTH.Contains(keyword)) 
                         && ( x.WarehouseTypeID.Contains(typeId))   
+                        && ( x.Quantity > 0)   
 
                          )
                 .Select(x => new
@@ -89,6 +90,20 @@ namespace Requisition.Controllers
                 })
                 .Take(50) // จำกัดแค่ 50 รายการ
                 .ToList();
+
+            data = data.Where(d =>
+            {
+                var Quantitytall = _repo.RequisitionHeader
+                                         .FindByCondition(
+                                             l => l.WH_PR_RequisitionDetail.Any(f => f.ItemID == d.CodeID)
+                                                  && l.SYS_Status != "C01",
+                                             l => l.Include(v => v.WH_PR_RequisitionDetail))
+                                         .SelectMany(g => g.WH_PR_RequisitionDetail
+                                             .Where(f => f.ItemID == d.CodeID))
+                                         .Sum(f => f.Quantity) ?? 0;
+
+                return d.TotalQuantity > Quantitytall; 
+            }).ToList();
 
             return Json(data);
         }
@@ -149,8 +164,8 @@ namespace Requisition.Controllers
                 RequisitionNo = x.RequisitionNo,
                 ProductCode = x.ProductCode,
                 ProductName = x.ProductName,
-                Quantity = x.Quantity,
-                ReceivedQty = x.ReceivedQty,
+                Quantity =  x.QuantityPR ,
+                ReceivedQty =  x.ReceivedQty,
                 UnitName = x.UnitName,
                 Remark = x.Remark,
                 ReceivingDate = x.ReceivingDate
@@ -188,9 +203,27 @@ namespace Requisition.Controllers
 
                     foreach (var d in item.WH_PR_RequisitionDetail)
                     {
+                        var resultall = _repo.RequisitionHeader
+                                         .FindByCondition(l => l.WH_PR_RequisitionDetail.Any(f => f.ItemID == d.ItemID)
+                                                               && l.SYS_Status != "C01"
+                                                               && l.RunningID != item.RunningID,
+                                                            l => l.Include(v => v.WH_PR_RequisitionDetail))
+                                          .SelectMany(g => g.WH_PR_RequisitionDetail
+                                             .Where(f => f.ItemID == d.ItemID)) // ✅ กรองเฉพาะ ItemID ที่ตรง
+                                         .ToList();
+                        var MtQty = _repo.ItemName.FindByCondition(g => g.ItemID == d.ItemID).FirstOrDefault()?.Quantity ?? 0;
+                        var TotalPayQty = (resultall.Sum(h => h.Quantity) ?? 0) + (item.WH_PR_RequisitionDetail.Where(a => a.ItemID == d.ItemID).Sum(v => v.Quantity) ?? 0);
+                        if (MtQty < TotalPayQty)
+                        {
+                            return Json(new
+                            {
+                                success = false,
+                                ex = $"รหัส {d.ItemID} มีจำนวนเบิก เกิน จากที่ขอเบิก  ที่มี {MtQty} / ขอเบิก {TotalPayQty}"
+                            });
+                        }
                         d.create(item.RunningID, item.RunningID + index.ToString("00"));
                         index++;
-                    }
+                    } 
 
                     _repo.RequisitionHeader.Create(item);
                     DataSendMail = item;
@@ -214,17 +247,37 @@ namespace Requisition.Controllers
                     // ---- Step H: Map Header ----
                     old.Edit(user.UserID, user.UserName, item, send);
 
+                 
                     // ---- Step H: Map Detail ใหม่ ----
                     int index = 0;
                     foreach (var d in item.WH_PR_RequisitionDetail)
                     {
+                        var resultall = _repo.RequisitionHeader
+                                            .FindByCondition(l => l.WH_PR_RequisitionDetail.Any(f => f.ItemID == d.ItemID)
+                                                                  && l.SYS_Status != "C01"
+                                                                  && l.RunningID != item.RunningID,
+                                                               l => l.Include(v => v.WH_PR_RequisitionDetail))
+                                             .SelectMany(g => g.WH_PR_RequisitionDetail
+                                                .Where(f => f.ItemID == d.ItemID)) // ✅ กรองเฉพาะ ItemID ที่ตรง
+                                            .ToList();
+                        var MtQty = _repo.ItemName.FindByCondition(g => g.ItemID == d.ItemID).FirstOrDefault()?.Quantity ?? 0;
+                        var TotalPayQty = (resultall.Sum(h => h.Quantity) ?? 0) + (item.WH_PR_RequisitionDetail.Where(a=>a.ItemID == d.ItemID).Sum(v=>v.Quantity) ?? 0);
+                        if (MtQty < TotalPayQty)
+                        {
+                            return Json(new
+                            {
+                                success = false,
+                                ex = $"รหัส {d.ItemID} มีจำนวนเบิก เกิน จากที่ขอเบิก  ที่มี {MtQty} / ขอเบิก {TotalPayQty}"
+                            });
+                        }
                         d.create(old.RunningID, old.RunningID + index.ToString("00"));
                         old.WH_PR_RequisitionDetail.Add(d);
-                        index++;
-                    }
+                        index++; 
 
-                    // ---- Step W: Update ----
-                    _repo.RequisitionHeader.Update(old);
+                    } 
+                  
+                        // ---- Step W: Update ----
+                        _repo.RequisitionHeader.Update(old);
                     DataSendMail = old;
                 }
 
@@ -554,6 +607,24 @@ namespace Requisition.Controllers
         public class UpdateAS400Request
         {
             public List<string> Ids { get; set; }
+        }
+        public IActionResult Reject(string id, string remark)
+        {
+            try
+            {
+                var item = _repo.RequisitionHeader.FindByCondition(l => l.RunningID == id).SingleOrDefault();
+                if (item == null) { return Json(new { success = false, ex = "ไม่พบข้อมูล" }); }
+                string refidlog = $"{item.RunningID.ToString()}";
+                var Log = new SYS_RejectLogs(UtilityHelper.ProgramId, refidlog, item.statusPageName, remark, user.UserName);
+                item.Cancel(user.UserID, user.UserName);
+                _repo.RejectLogs.Create(Log);
+                _repo.Save();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, ex = ex.Message });
+            }
         }
         public IActionResult ListAs400(Search Search)
         {

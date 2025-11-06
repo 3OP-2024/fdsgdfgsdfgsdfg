@@ -21,7 +21,7 @@ namespace Requisition.Models
         [StringLength(200)]
         public string ProductName { get; set; }
 
-        public int? Quantity { get; set; }
+         public int? QuantityPR { get; set; }
 
         public int? ReceivedQty { get; set; }
 

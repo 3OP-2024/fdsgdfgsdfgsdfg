@@ -63,7 +63,7 @@ function Cancel() {
     });
 
     function rejectC01(id) {
-        var url = URL + '/ReceivingEq/Cancel';
+        var url = URL + '/Requisition/Reject';
         $.ajax({
             type: "POST",
             url: url,
@@ -72,7 +72,7 @@ function Cancel() {
             beforeSend: function () { ShowLoading(); },
             success: function (res) {
                 if (res.success === true) {
-                    let link = URL + '/ReceivingEq/List?statusPage=P01';
+                    let link = URL + '/Requisition/List?statusPage=P01';
 
                     Swal.fire({
                         icon: "success",

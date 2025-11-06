@@ -678,7 +678,10 @@
         // เปิด modal เมื่อคลิกช่องรหัสงาน
 
         $(document).on('click', '.jobcode-input', function () {
-            console.log(11);
+            if ($("#DepartmentID").val() == "") {
+                showWarning("ระบุแผนกที่ขอซื้อ");
+                return false;
+            }
                 currentInput = $(this); // เก็บ input ที่กดไว้
                 $('#jobModal').modal('show');
             $('#jobResultTable tbody').empty(); // clear ตารางเดิม
@@ -803,6 +806,7 @@
             // กดปุ่มค้นหา
             $("#btnSearchStock").click(function () {
                 var keyword = $("#txtSearchStock").val();
+                ShowLoading();
                 $.ajax({
                     url:  '@Url.Action("SearchStock", "Requisition")',   // 👉 Controller/Action ที่จะไปดึงข้อมูล
                     type: 'GET',
@@ -830,10 +834,13 @@
                                 <td>${item.unitNameTH}</td>
                             </tr>`;
                         });
+
                         $("#modalFromStock tbody").html(rows);
+                        ShowLoading(false);
                     },
                     error: function () {
                         showWarning("เกิดข้อผิดพลาดในการค้นหา");
+                        ShowLoading(false);
                     }
                 });
             });
@@ -854,16 +861,24 @@
             var details = [];
             $("#tblDetail tbody tr").each(function () {
                 var row = $(this);
+                var quantity = parseFloat(row.find("td:eq(3)").text().trim()) || 0;
+                var qtyRequisition = parseFloat(row.find("input[name='QtyRequisition']").val()) || 0;
+                if (qtyRequisition > quantity) {
+                    hasError = true;
+                    row.find("input[name='QtyRequisition']").addClass("is-invalid"); // highlight ช่องที่ผิด
+                    errorMsg = "จำนวนที่ขอเบิก " + qtyRequisition + " ห้ามเกินจำนวนที่มีอยู่ " + quantity +"";
+                } else {
+                    row.find("input[name='QtyRequisition']").removeClass("is-invalid");
+                }
+
                 var detailItem = {
                     ItemOrder: row.find("td:eq(0)").text().trim(),
                     ItemID: row.find("td:eq(1)").text().trim(),
-                    Quantity: row.find("td:eq(3)").text().trim(),
-                    QtyRequisition: row.find("input[name='QtyRequisition']").val(),
+                    Quantity: quantity,
+                    QtyRequisition: qtyRequisition,
                     Remark: row.find("textarea[name='Remark']").val(),
                     JobID: row.find('input[name="JobCode"]').val()
-                };
-
-
+                }; 
 
                 details.push(detailItem);
             });
@@ -872,7 +887,10 @@
                 return false;
             }
 
-
+              if ($("#DepartmentID").val() == "") {
+                  showWarning("ระบุแผนกที่ขอซื้อ");
+                  return false;
+              }
             var item = {
                 RunningID: $("#RunningID").html(),
                 DepartmentID: $("#DepartmentID").val(),
@@ -894,7 +912,7 @@
                     ShowLoading();
                 },
                 success: function (res) {
-                      if (res.success) {
+                    if (res.success) {
                         let link = "";
                         if (send) {
                             link = '@Url.Action("List", "Requisition", new { statusPage = "P01" })';
@@ -905,11 +923,13 @@
                         }
 
                         showSuccess("บันทึกสำเร็จ", link);
+                    } else {
+                        showWarning("เกิดข้อผิดพลาดในการบันทึก" + res.ex);
                     }
                     ShowLoading(false);
                 },
                 error: function (err) {
-                    showWarning("เกิดข้อผิดพลาดในการบันทึก");
+                    showWarning("เกิดข้อผิดพลาดในการบันทึก" + err.ex );
                     ShowLoading(false);
                 }
             });
@@ -919,7 +939,8 @@
 
 
                     // 🔍 ปุ่มค้นหา
-                    $("#btnSearchPO").click(function () {
+            $("#btnSearchPO").click(function () {
+                ShowLoading();
                         let searchData = {
                             DepartmentID: $("#DepartmetModal").val(),
                             RequisitionNo: $("#txtRequisitionNo").val(),
@@ -937,6 +958,7 @@
                                 $("#tblPOList").html(`<tr><td colspan="9" class="text-center">⏳ กำลังโหลด...</td></tr>`);
                             },
                             success: function (res) {
+                                ShowLoading(false);
                                 if (res && res.length > 0) {
                                     let rows = "";
                                     $.each(res, function (i, item) {
@@ -965,9 +987,11 @@
                                 } else {
                                     $("#tblPOList").html(`<tr><td colspan="9" class="text-center text-muted">ไม่พบข้อมูล</td></tr>`);
                                 }
+                                ShowLoading(false);
                             },
                             error: function () {
                                 $("#tblPOList").html(`<tr><td colspan="9" class="text-center text-danger">❌ เกิดข้อผิดพลาด</td></tr>`);
+                                ShowLoading(false);
                             }
                         });
                     });

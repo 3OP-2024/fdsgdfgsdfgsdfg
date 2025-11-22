@@ -166,7 +166,16 @@
             <div class="row mb-1 align-items-center">
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">ประเภทการเบิก:</label>
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
-                    <span class="badge   @(Search?.TypeID == "001" ? "bg-orange " : "bg-green ")text-red-fg">@Search?.TypeIDName</span>
+                    @if (Model?.IsAdjust == true)
+                    {
+                    <span class="badge textcolorred"> ปรับ สต๊อค </span>
+
+                    }
+                    else
+                    {
+                        <span class="badge   @(Search?.TypeID == "001" ? "bg-orange " : "bg-green ")text-red-fg">@Search?.TypeIDName</span>
+
+                    }
                     <input type="hidden" id="RequisitionType" value="@Search?.TypeID" />
                 </div>
                 <div class="col-md-2 d-none d-md-block"></div>
@@ -284,7 +293,14 @@
                                     <td class="text-start">@d?.WH_MT_ItemName?.ItemNameTH</td>
                                     <td class="text-right">@d?.Quantity</td>
                                     <td class="text-right">
-                                        <input type="number" required class="form-control form-control-sm text-right" @Disable value="@d?.QtyRequisition" name="QtyRequisition">
+                                         <input type="number"
+                                               step="1"
+                                               min="0"
+                                               class="form-control form-control-sm text-right"
+                                               value="@d?.QtyRequisition"
+                                               name="QtyRequisition"
+                                               @Disable />
+
                                     </td>
                                     <td>@d?.WH_MT_ItemName?.UnitNameTH</td>
                                     <td>
@@ -762,7 +778,7 @@
                                                    class="form-control form-control-sm text-center"
                                                    name="QtyRequisition"
                                                    value="${received}"
-                                                   min="${qty}"
+                                                   min="0"
                                                    max="${qty}" />
                                         </td>
                                         <td class="text-center">${unit}</td>

@@ -11,8 +11,9 @@ namespace Requisition.Models
         public string TypeID { get; set; } 
         public string BranchID { get; set; } 
         public string ZoneID { get; set; } 
-        public string _typestatus { get; set; } 
+        public string _typestatus { get; set; }
 
+        public bool ListAs400 { get; set; } = true;
 
         public string receiveDateStart { get; set; }
         public string receiveDateEnd { get; set; } 

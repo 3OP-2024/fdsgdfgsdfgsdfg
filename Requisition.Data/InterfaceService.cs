@@ -292,6 +292,8 @@ namespace Requisition.Data
     {
         void UPAS400(string userId, List<string> runnings);
         string GetRunning();
+      
+   
         HelperPaging<WH_PR_RequisitionHeader> GetDataList(Search search);
     }
     public class RequisitionHeaderRepository : Repository<WH_PR_RequisitionHeader>, IRequisitionHeaderRepository
@@ -348,6 +350,10 @@ namespace Requisition.Data
                            || (p.DepartmentID.Length > 4 && p.DepartmentID.Substring(0, 4) == s)));
                     }
 
+                }
+                if (search.ListAs400 == false)
+                {
+                    items = items.Where(l => l.IsAdjust == false);
                 }
 
                 search.sorting = String.IsNullOrEmpty(search.sorting) ? "RunningID" : search.sorting;
@@ -407,6 +413,7 @@ namespace Requisition.Data
         }
 
 
+         
         public string GetRunning()
         {
             var runningId = 0;

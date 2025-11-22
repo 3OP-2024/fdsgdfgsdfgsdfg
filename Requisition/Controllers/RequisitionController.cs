@@ -100,7 +100,7 @@ namespace Requisition.Controllers
                                              l => l.Include(v => v.WH_PR_RequisitionDetail))
                                          .SelectMany(g => g.WH_PR_RequisitionDetail
                                              .Where(f => f.ItemID == d.CodeID))
-                                         .Sum(f => f.Quantity) ?? 0;
+                                         .Sum(f => f.QtyRequisition) ?? 0;
 
                 return d.TotalQuantity > Quantitytall; 
             }).ToList();
@@ -212,7 +212,7 @@ namespace Requisition.Controllers
                                              .Where(f => f.ItemID == d.ItemID)) // ✅ กรองเฉพาะ ItemID ที่ตรง
                                          .ToList();
                         var MtQty = _repo.ItemName.FindByCondition(g => g.ItemID == d.ItemID).FirstOrDefault()?.Quantity ?? 0;
-                        var TotalPayQty = (resultall.Sum(h => h.Quantity) ?? 0) + (item.WH_PR_RequisitionDetail.Where(a => a.ItemID == d.ItemID).Sum(v => v.Quantity) ?? 0);
+                        var TotalPayQty = (resultall.Sum(h => h.QtyRequisition) ?? 0) + (item.WH_PR_RequisitionDetail.Where(a => a.ItemID == d.ItemID).Sum(v => v.QtyRequisition) ?? 0);
                         if (MtQty < TotalPayQty)
                         {
                             return Json(new
@@ -249,35 +249,40 @@ namespace Requisition.Controllers
 
                  
                     // ---- Step H: Map Detail ใหม่ ----
-                    int index = 0;
-                    foreach (var d in item.WH_PR_RequisitionDetail)
+                    if(item?.WH_PR_RequisitionDetail != null)
                     {
-                        var resultall = _repo.RequisitionHeader
-                                            .FindByCondition(l => l.WH_PR_RequisitionDetail.Any(f => f.ItemID == d.ItemID)
-                                                                  && l.SYS_Status != "C01"
-                                                                  && l.RunningID != item.RunningID,
-                                                               l => l.Include(v => v.WH_PR_RequisitionDetail))
-                                             .SelectMany(g => g.WH_PR_RequisitionDetail
-                                                .Where(f => f.ItemID == d.ItemID)) // ✅ กรองเฉพาะ ItemID ที่ตรง
-                                            .ToList();
-                        var MtQty = _repo.ItemName.FindByCondition(g => g.ItemID == d.ItemID).FirstOrDefault()?.Quantity ?? 0;
-                        var TotalPayQty = (resultall.Sum(h => h.Quantity) ?? 0) + (item.WH_PR_RequisitionDetail.Where(a=>a.ItemID == d.ItemID).Sum(v=>v.Quantity) ?? 0);
-                        if (MtQty < TotalPayQty)
+                        int index = 0;
+                        foreach (var d in item.WH_PR_RequisitionDetail)
                         {
-                            return Json(new
+                            var resultall = _repo.RequisitionHeader
+                                                .FindByCondition(l => l.WH_PR_RequisitionDetail.Any(f => f.ItemID == d.ItemID)
+                                                                      && l.SYS_Status != "C01"
+                                                                      && l.RunningID != item.RunningID,
+                                                                   l => l.Include(v => v.WH_PR_RequisitionDetail))
+                                                 .SelectMany(g => g.WH_PR_RequisitionDetail
+                                                    .Where(f => f.ItemID == d.ItemID)) // ✅ กรองเฉพาะ ItemID ที่ตรง
+                                                .ToList();
+                            var MtQty = _repo.ItemName.FindByCondition(g => g.ItemID == d.ItemID).FirstOrDefault()?.Quantity ?? 0;
+                            var TotalPayQty = (resultall.Sum(h => h.QtyRequisition) ?? 0) + (item.WH_PR_RequisitionDetail.Where(a => a.ItemID == d.ItemID).Sum(v => v.QtyRequisition) ?? 0);
+                            if (MtQty < TotalPayQty)
                             {
-                                success = false,
-                                ex = $"รหัส {d.ItemID} มีจำนวนเบิก เกิน จากที่ขอเบิก  ที่มี {MtQty} / ขอเบิก {TotalPayQty}"
-                            });
-                        }
-                        d.create(old.RunningID, old.RunningID + index.ToString("00"));
-                        old.WH_PR_RequisitionDetail.Add(d);
-                        index++; 
+                                return Json(new
+                                {
+                                    success = false,
+                                    ex = $"รหัส {d.ItemID} มีจำนวนเบิก เกิน จากที่ขอเบิก  ที่มี {MtQty} / ขอเบิก {TotalPayQty}"
+                                });
+                            }
+                            d.create(old.RunningID, old.RunningID + index.ToString("00"));
+                            old.WH_PR_RequisitionDetail.Add(d);
+                            index++;
 
-                    } 
-                  
+                        }
+
                         // ---- Step W: Update ----
                         _repo.RequisitionHeader.Update(old);
+
+                    }
+                   
                     DataSendMail = old;
                 }
 
@@ -644,7 +649,8 @@ namespace Requisition.Controllers
           
             if (!ViewAll) { TempData["Error"] = "ท่านไม่มีสิทธิ์ใช้งาน"; return RedirectToAction("Index", "Home"); }
             ViewBag.ViewEdit = CheckPer("P05", "RC00");
- 
+            Search.ListAs400 = false;
+
             var ListItemss = _repo.RequisitionHeader.GetDataList(Search);
             var _TypeID =
                     new List<SelectListItem>

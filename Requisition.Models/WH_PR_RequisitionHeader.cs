@@ -199,7 +199,8 @@ namespace Requisition.Models
         [StringLength(11)]
         public string RequisitionNo { get; set; }
         public bool IsUpAs400 { get; set; } = false;
-      [NotMapped]
+        public bool IsAdjust { get; set; } = false;
+        [NotMapped]
         public string RequisitionDateStr { get; set; }
         public string Approve1DateTH
         {

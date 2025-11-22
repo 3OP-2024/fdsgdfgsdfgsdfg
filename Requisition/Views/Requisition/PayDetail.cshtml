@@ -187,8 +187,17 @@
             <div class="row mb-1 align-items-center">
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">ประเภทการเบิก:</label>
                 <div class="col-md-2 col-12 mb-2 mb-md-0">
-                    <span class="badge   @(Search?.TypeID == "001" ? "bg-orange " : "bg-green ")text-red-fg">@Search?.TypeIDName</span>
-                    <input type="hidden" id="RequisitionType" value="@Search?.TypeID" />
+                    @if (Model?.IsAdjust == true)
+                    {
+                        <span class="badge textcolorred"> ปรับ สต๊อค </span>
+
+                    }
+                    else
+                    {
+                        <span class="badge   @(Search?.TypeID == "001" ? "bg-orange " : "bg-green ")text-red-fg">@Search?.TypeIDName</span>
+
+                    }
+                     <input type="hidden" id="RequisitionType" value="@Search?.TypeID" />
                 </div>
                 <div class="col-md-2 d-none d-md-block"></div>
                 <label class="col-md-2 col-12 col-form-label text-md-end mb-1 mb-md-0">สถานะ </label>

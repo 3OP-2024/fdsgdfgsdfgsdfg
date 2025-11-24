@@ -678,6 +678,7 @@
             currentInput = $(this);
             $('#jobModal').modal('show');
             $('#jobResultTable tbody').empty(); // ล้างผลเก่า
+            Search('');
         });
 
 
@@ -689,24 +690,27 @@
                     $('#jobList').html(''); // ล้างผลลัพธ์ถ้ายังไม่ถึง 3 ตัว
                     return;
                 }
-
-                $.get('@Url.Action("JobSearch", "Requisition")', { q: keyword }, function (res) {
-                    let items = '';
-                    if (res && res.length > 0) {
-                        res.forEach(job => {
-                            items += `
-                                <a href="#" class="list-group-item list-group-item-action select-job"
-                                   data-code="${job.jobID}" data-name="${job.jobName}">
-                                    ${job.jobID} - ${job.jobName}
-                                </a>`;
-                        });
-                    } else {
-                        items = `<div class="list-group-item text-muted text-center">ไม่พบข้อมูล</div>`;
-                    }
-                    $('#jobList').html(items);
-                });
+                Search(keyword);
             });
 
+
+        function Search(keyword) {
+                 $.get('@Url.Action("JobSearchP03", "Requisition")', { q: keyword }, function (res) {
+                        let items = '';
+                        if (res && res.length > 0) {
+                            res.forEach(job => {
+                                items += `
+                                    <a href="#" class="list-group-item list-group-item-action select-job"
+                                       data-code="${job.jobID}" data-name="${job.jobName}">
+                                        ${job.jobID} - ${job.jobName}
+                                    </a>`;
+                            });
+                        } else {
+                            items = `<div class="list-group-item text-muted text-center">ไม่พบข้อมูล</div>`;
+                        }
+                        $('#jobList').html(items);
+                    });
+        }
 // เลือกงาน
             $(document).on('click', '.select-job', function (e) {
                 e.preventDefault();

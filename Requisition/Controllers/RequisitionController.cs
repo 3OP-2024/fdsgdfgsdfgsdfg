@@ -520,6 +520,23 @@ namespace Requisition.Controllers
 
             return Json(jobs);
         }
+        [HttpGet]
+        public IActionResult JobSearchP03(string q)
+        {
+
+            var DepPartment = GetDepartmentByPermissionGetList(new List<string> { "P03" }).Select(d => d.AccountingCode).ToList();
+
+            var jobs = _repo.JobDepartment
+                .FindByCondition(x => ( x.JobID.Contains(q) || x.JobName.Contains(q) || string.IsNullOrEmpty(q)) && DepPartment.Any(s=> s == x.JobAccountingCode))
+                .Select(x => new {
+                    jobID = x.JobID,
+                    jobName = x.JobName
+                })
+                .Take(50) // กันข้อมูลเยอะเกิน
+                .ToList();
+
+            return Json(jobs);
+        }
 
         [HttpGet]
         public IActionResult SerialSearch(string q,string id)

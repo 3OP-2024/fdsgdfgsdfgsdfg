@@ -1,6 +1,6 @@
 using System;
 
-namespace Template_Tabler.Models
+namespace Requisition.Models
 {
     public class ErrorViewModel
     {

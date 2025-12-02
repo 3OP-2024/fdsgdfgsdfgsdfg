@@ -265,7 +265,7 @@ export class CountUp {
   printValue(val: number): void {
     if (!this.el) return;
     const result = this.formattingFn(val);
-    if (this.options.plugin?.render) {
+    if (this.options.plugin.render) {
       this.options.plugin.render(this.el, result);
       return;
     }

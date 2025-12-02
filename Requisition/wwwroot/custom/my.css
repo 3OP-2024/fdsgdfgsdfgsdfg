@@ -1,0 +1,22 @@
+﻿ 
+
+.stick-nav {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    z-index: 9999;
+}
+.stick-nav-manu {
+    position: fixed;
+    top: 55px;
+    z-index: 9999;
+    width: 100%;
+}
+
+.page-wrapper {
+    padding-top: 100px !important; 
+}
+
+.nav-link-icon i{
+    font-size: 1.3rem;
+}

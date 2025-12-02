@@ -4703,7 +4703,7 @@ textarea.form-control-lg {
 
 .navbar {
     --tblr-navbar-padding-x: 0;
-    --tblr-navbar-padding-y: 0.25rem;
+    /*--tblr-navbar-padding-y: 0.25rem;*/
     --tblr-navbar-color: var(--tblr-secondary);
     --tblr-navbar-hover-color: var(--tblr-body-color);
     --tblr-navbar-disabled-color: var(--tblr-disabled-color);
@@ -16008,7 +16008,6 @@ body[data-bs-theme=dark] .navbar[data-bs-theme=light] {
 @media (min-width: 992px) {
     :root,
     :host {
-        margin-left: calc(100vw - 100%);
         margin-right: 0;
     }
 }

@@ -265,7 +265,7 @@ var CountUp = /** @class */ (function () {
         if (!this.el)
             return;
         var result = this.formattingFn(val);
-        if (this.options.plugin ? .render : ) {
+        if (this.options.plugin.render) {
             this.options.plugin.render(this.el, result);
             return;
         }

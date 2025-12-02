@@ -1,0 +1,413 @@
+﻿
+@model IEnumerable<Requisition.Models.VehicleRequestViewModel>
+
+<div class="page-header d-print-none mb-3">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">ระบบขอใช้งานรถ</h2>
+        </div>
+        <div class="col-auto ms-auto">
+            <button type="button" class="btn btn-primary" onclick="openModal(0)">
+                <i class="fas fa-plus me-2"></i> สร้างใบขอใช้รถ
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
+            <thead>
+                <tr>
+                    <th>เลขที่ใบ</th>
+                    <th>ฝ่าย/แผนก</th>
+                    <th>ผู้แจ้ง</th>
+                    <th>วันที่ใช้งาน</th>
+                    <th>สถานที่</th>
+                    <th>ประเภทรถ</th>
+                    <th>สถานะอนุมัติ</th>
+                    <th>จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>
+                            <div>@item.DepartmentName</div>
+                        </td>
+                        <td>
+                            <div>@item.EditName</div>
+                        </td>
+                        <td>
+                            <div>@item.StartDate.ToString("dd/MM/yyyy HH:mm")</div>
+                            <div class="text-muted small">ถึง @item.EndDate.ToString("dd/MM/yyyy HH:mm")</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">@item.Location</div>
+                            <div class="text-muted small">@item.Province</div>
+                        </td>
+                        <td>
+                            @if (item.VehicleType == "van") {<span class="badge bg-azure-lt"><i class="fas fa-shuttle-van me-1"></i> รถตู้</span> } else if (item.VehicleType == "truck") { <span class="badge bg-orange-lt"><i class="fas fa-truck me-1"></i> กระบะ</span> } else { <span class="badge bg-blue-lt"><i class="fas fa-car me-1"></i> รถเก๋ง</span>}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                @{
+                                    string GetBadgeClass(int s) => s == 1 ? "bg-success" : (s == 2 ? "bg-danger" : "bg-secondary");
+                                    string GetIcon(int s) => s == 1 ? "fa-check" : (s == 2 ? "fa-times" : "fa-minus");
+                                }
+                                <span class="badge @GetBadgeClass(item.ApproveStatus1)" title="หน.แผนก"><i class="fas @GetIcon(item.ApproveStatus1)"></i></span>
+                                <span class="badge @GetBadgeClass(item.ApproveStatus2)" title="HR"><i class="fas @GetIcon(item.ApproveStatus2)"></i></span>
+                                <span class="badge @GetBadgeClass(item.ApproveStatus3)" title="ผจก."><i class="fas @GetIcon(item.ApproveStatus3)"></i></span>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-ghost-primary" onclick="openModal(@item.Id)">
+                                รายละเอียด
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@*<div class="modal modal-blur fade" id="modal-vehicle" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal-title">รายละเอียดการขอใช้รถ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="hdnId" value="0">
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">วันที่เริ่มต้น</label>
+                            <div class="input-icon">
+                                <span class="input-icon-addon">
+                                    <i class="ti ti-calendar-clock"></i>
+                                </span>
+                                <input class="form-control" id="txtStartDate" placeholder="Select a date" value="2020-06-20">
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">วันที่สิ้นสุด</label>
+                            <div class="input-icon">
+                                <span class="input-icon-addon">
+                                    <i class="ti ti-calendar-clock"></i>
+                                </span>
+                                <input class="form-control" id="txtEndDate" placeholder="Select a date" value="2020-06-20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">สถานที่ / จังหวัด</label>
+                        <div class="input-group">
+                            <input type="text" id="txtLocation" class="form-control" placeholder="สถานที่">
+                            <select id="ddlProvince" class="form-select" style="max-width: 150px;">
+                                <option value="กรุงเทพฯ">กรุงเทพฯ</option>
+                                <option value="สมุทรปราการ">สมุทรปราการ</option>
+                                <option value="ชลบุรี">ชลบุรี</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">รายละเอียดที่ตั้งสถานที่</label>
+                        <textarea id="txtLocationDetail" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">วัตถุประสงค์</label>
+                        <textarea id="txtObjective" class="form-control" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">จุดขึ้นรถ</label>
+                        <label class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkCompany">
+                            <span class="form-check-label">บริษัท</span>
+                        </label>
+                        <label class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="chkOther">
+                            <span class="form-check-label">จุดอื่น (ระบุ)</span>
+                        </label>
+                        <textarea id="txtPickupDetail" class="form-control mt-2 d-none" rows="2" placeholder="ระบุจุดนัดหมาย..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">ประเภทรถ</label>
+                        <div class="form-selectgroup">
+                            <label class="form-selectgroup-item">
+                                <input type="radio" name="vehicleType" value="sedan" class="form-selectgroup-input">
+                                <span class="form-selectgroup-label">รถเก๋ง</span>
+                            </label>
+                            <label class="form-selectgroup-item">
+                                <input type="radio" name="vehicleType" value="van" class="form-selectgroup-input">
+                                <span class="form-selectgroup-label">รถตู้</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="approveSection" class="card bg-light mt-3 d-none">
+                        <div class="card-body">
+                            <h4 class="card-title">ส่วนการอนุมัติ (จำลองปุ่มอนุมัติ)</h4>
+                            <div class="d-flex justify-content-around">
+                                <button onclick="approveAction(1, 1)" class="btn btn-sm btn-outline-success">หน.แผนก อนุมัติ</button>
+                                <button onclick="approveAction(2, 1)" class="btn btn-sm btn-outline-success">HR อนุมัติ</button>
+                                <button onclick="approveAction(3, 1)" class="btn btn-sm btn-outline-success">ผจก. อนุมัติ</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">ปิด</button>
+                    <button type="button" class="btn btn-primary" onclick="saveData()">
+                        <i class="fas fa-save me-2"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+<div class="modal modal-blur fade" id="modal-vehicle" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">รายละเอียดการขอใช้รถ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="hdnId" value="0">
+                <!-- ✅ แผนก -->
+                <div class="mb-3">
+                    <label class="form-label">แผนก</label>
+                    <select id="ddlDepartment" class="form-select">
+                        <option value="">-- เลือกแผนก --</option>
+                        <option value="PRD">ฝ่ายผลิต</option>
+                        <option value="ENG">ฝ่ายวิศวกรรม</option>
+                        <option value="HR">ฝ่ายบุคคล</option>
+                        <option value="ACC">ฝ่ายบัญชี</option>
+                    </select>
+                </div>
+                <!-- วันที่เริ่มต้น/สิ้นสุด -->
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">วันที่เริ่มต้น</label>
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <i class="ti ti-calendar-clock"></i>
+                            </span>
+                            <input class="form-control" id="txtStartDate" placeholder="Select a date" value="2020-06-20">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">วันที่สิ้นสุด</label>
+                        <div class="input-icon">
+                            <span class="input-icon-addon">
+                                <i class="ti ti-calendar-clock"></i>
+                            </span>
+                            <input class="form-control" id="txtEndDate" placeholder="Select a date" value="2020-06-20">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- สถานที่ / จังหวัด -->
+                <div class="mb-3">
+                    <label class="form-label">สถานที่ / จังหวัด</label>
+                    <div class="input-group">
+                        <input type="text" id="txtLocation" class="form-control" placeholder="สถานที่">
+                        <select id="ddlProvince" class="form-select" style="max-width: 250px;">
+                            <option value="กรุงเทพฯ">กรุงเทพฯ</option>
+                            <option value="สมุทรปราการ">สมุทรปราการ</option>
+                            <option value="ชลบุรี">ชลบุรี</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">รายละเอียดที่ตั้งสถานที่ / จุดขึ้นรถ</label>
+                    <textarea id="txtLocationDetail" class="form-control" rows="2"></textarea>
+                </div>
+
+                <!-- วัตถุประสงค์ -->
+                <div class="mb-3">
+                    <label class="form-label">วัตถุประสงค์</label>
+                    <textarea id="txtObjective" class="form-control" rows="2"></textarea>
+                </div>
+
+
+
+                <!-- ✅ สิ่งของสัมภาระ + อัปโหลดรูป -->
+                @*<div class="mb-3">
+                    <label class="form-label">สิ่งของสัมภาระ</label>
+                    <textarea id="txtLuggageDetail" class="form-control" rows="2"
+                              placeholder="เช่น อะไหล่เครื่องจักร 3 กล่อง, เอกสาร, โน้ตบุ๊ก ฯลฯ"></textarea>
+
+                    <label class="form-label mt-2">รูปภาพสิ่งของ (สามารถเลือกได้หลายรูป)</label>
+                    <input type="file" id="fileLuggageImages" class="form-control" accept="image/*" multiple>
+
+                    <!-- Preview รูป -->
+                    <div class="mt-2 d-flex flex-wrap" id="luggagePreview" style="gap: .5rem;">
+                        <!-- preview image จะมาโผล่ตรงนี้ -->
+                    </div>
+                </div>*@
+
+                <!-- ✅ ผู้โดยสาร: autocomplete + เพิ่มได้หลายคน -->
+                <div class="mb-3">
+                    <label class="form-label">ผู้โดยสาร</label>
+
+                    <div class="input-group mb-2">
+                        <input type="text" id="txtPassengerSearch" class="form-control"
+                               placeholder="ค้นหาชื่อ/รหัสพนักงาน...">
+                        <button type="button" class="btn btn-outline-primary" id="btnAddPassenger">
+                            เพิ่มผู้โดยสาร
+                        </button>
+                    </div>
+
+                    <!-- รายการ suggestion (autocomplete แบบง่าย ๆ) -->
+                    <div id="passengerSuggest" class="list-group mb-2" style="max-height: 150px; overflow:auto;">
+                        <!-- จะถูกเติมด้วย JS ตามคำค้น -->
+                    </div>
+
+                    <!-- รายการผู้โดยสารที่เลือกแล้ว -->
+                    <div id="passengerSelected">
+                        <!-- แสดงเป็น badge ของคนที่เลือก -->
+                    </div>
+
+                    <!-- เก็บ ID ผู้โดยสารที่เลือกไว้ส่งไป server -->
+                    <input type="hidden" id="hdnPassengerIds" value="">
+                </div>
+
+                <!-- ส่วนอนุมัติ (เดิม) -->
+                <div id="approveSection" class="card bg-light mt-3 d-none">
+                    <div class="card-body">
+                        <h4 class="card-title">ส่วนการอนุมัติ (จำลองปุ่มอนุมัติ)</h4>
+                        <div class="d-flex justify-content-around">
+                            <button onclick="approveAction(1, 1)" class="btn btn-sm btn-outline-success">หน.แผนก อนุมัติ</button>
+                            <button onclick="approveAction(2, 1)" class="btn btn-sm btn-outline-success">HR อนุมัติ</button>
+                            <button onclick="approveAction(3, 1)" class="btn btn-sm btn-outline-success">ผจก. อนุมัติ</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-primary" onclick="saveData()">
+                    <i class="fas fa-save me-2"></i> บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        // 1. Function เปิด Modal (รองรับทั้ง Add และ View/Edit)
+        function openModal(id) {
+            // Reset Form ก่อน
+            $('#hdnId').val(0);
+            $('input[type="text"], textarea').val('');
+            $('input[type="checkbox"], input[type="radio"]').prop('checked', false);
+            $('#chkOther').change();
+            var modal = new bootstrap.Modal(document.getElementById('modal-vehicle'));
+
+            if (id === 0) {
+                // โหมด Add
+                $('#modal-title').text('สร้างใบขอใช้รถใหม่');
+                $('#approveSection').addClass('d-none'); // ซ่อนส่วนอนุมัติ
+                modal.show();
+            } else {
+                // โหมด Edit/View: ดึงข้อมูลจาก Server
+                $.get('/VehicleRequest/GetDetail?id=' + id, function (data) {
+                    if (data) {
+                        $('#modal-title').text('แก้ไข/ดูรายละเอียด ID: ' + data.id);
+                        $('#hdnId').val(data.id);
+
+                        // Map ข้อมูลเข้า Input
+                        // หมายเหตุ: datetime-local format ต้องเป็น yyyy-MM-ddTHH:mm
+                        $('#txtStartDate').val(formatDateForInput(data.startDate));
+                        $('#txtEndDate').val(formatDateForInput(data.endDate));
+                        $('#txtLocation').val(data.location);
+                        $('#ddlProvince').val(data.province);
+                        $('#txtObjective').val(data.objective);
+
+                        // Checkbox
+                        $('#chkCompany').prop('checked', data.pickupAtCompany);
+                        $('#chkOther').prop('checked', data.pickupAtOther);
+                        if (data.pickupAtOther) $('#txtPickupDetail').removeClass('d-none').val(data.pickupOtherDetail);
+
+                        // Radio Button
+                        $('input[name="vehicleType"][value="' + data.vehicleType + '"]').prop('checked', true);
+
+                        // แสดงปุ่มอนุมัติ
+                        $('#approveSection').removeClass('d-none');
+
+                        modal.show();
+                    }
+                });
+            }
+        }
+
+        // 2. Function บันทึก (Add / Update)
+        function saveData() {
+            var data = {
+                Id: $('#hdnId').val(),
+                StartDate: $('#txtStartDate').val(),
+                EndDate: $('#txtEndDate').val(),
+                Location: $('#txtLocation').val(),
+                Province: $('#ddlProvince').val(),
+                Objective: $('#txtObjective').val(),
+                PickupAtCompany: $('#chkCompany').is(':checked'),
+                PickupAtOther: $('#chkOther').is(':checked'),
+                PickupOtherDetail: $('#txtPickupDetail').val(),
+                VehicleType: $('input[name="vehicleType"]:checked').val()
+            };
+
+            $.post('/VehicleRequest/Save', data, function (res) {
+                if (res.success) {
+                    alert('บันทึกสำเร็จ');
+                    location.reload(); // รีโหลดหน้าเพื่อดูข้อมูลใหม่
+                }
+            });
+        }
+
+        // 3. Function อนุมัติ (Approve)
+        function approveAction(level, status) {
+            var id = $('#hdnId').val();
+            if (id == 0) return;
+
+            if (!confirm('ยืนยันการอนุมัติ?')) return;
+
+            $.post('/VehicleRequest/Approve', { id: id, level: level, status: status }, function (res) {
+                if (res.success) {
+                    alert('อนุมัติเรียบร้อย');
+                    location.reload();
+                }
+            });
+        }
+
+        // Helper: แปลง Date C# เป็น format ที่ input type="datetime-local" รับได้
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            var date = new Date(dateStr);
+            // ปรับ Timezone offset ให้ตรง (Simple hack for local time)
+            var tzconf = (date.getTimezoneOffset() * 60000);
+            var localISOTime = (new Date(date - tzconf)).toISOString().slice(0, 16);
+            return localISOTime;
+        }
+
+        // Event เล็กน้อย: แสดงช่องกรอกจุดนัดหมายเมื่อติ๊กเลือก
+        $('#chkOther').change(function () {
+            if (this.checked) $('#txtPickupDetail').removeClass('d-none');
+            else $('#txtPickupDetail').addClass('d-none');
+        });
+
+    </script>
+}

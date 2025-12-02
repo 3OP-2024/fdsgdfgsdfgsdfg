@@ -1,291 +1,431 @@
-﻿@{
+@model IEnumerable<Requisition.Models.VehicleRequestViewModel>
+@{
     ViewData["Title"] = "ขอใช้งานรถส่วนกลาง";
+
+    string StatusLabel(string status) => status switch {
+        "P01" => "P01 - ร่าง/แก้ไข",
+        "P02" => "P02 - รออนุมัติขั้นตอนที่ 1",
+        "P03" => "P03 - รออนุมัติขั้นตอนที่ 2",
+        "P04" => "P04 - รออนุมัติขั้นตอนที่ 3",
+        "APPROVED" => "อนุมัติครบแล้ว",
+        _ => status
+    };
+
+    string StatusClass(string status) => status switch {
+        "P01" => "bg-secondary",
+        "P02" => "bg-indigo",
+        "P03" => "bg-orange",
+        "P04" => "bg-purple",
+        "APPROVED" => "bg-success",
+        _ => "bg-secondary"
+    };
 }
 
-<div class="page-body">
-    <div class="container-xl">
+<div class="page-header d-print-none mb-3">
+    <div class="row align-items-center">
+        <div class="col">
+            <h2 class="page-title">ระบบขอใช้งานรถ</h2>
+        </div>
+        <div class="col-auto ms-auto">
+            <button type="button" class="btn btn-primary" onclick="openModal(0)">
+                <i class="ti ti-plus me-2"></i> สร้างใบขอใช้รถ
+            </button>
+        </div>
+    </div>
+</div>
 
-        <!-- Card: Filter & Toolbar -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title">รายการขอใช้งานรถ (กำลังดำเนินการ)</h3>
-                <div class="card-actions">
-                    <button type="button" class="btn btn-primary" id="btnCreateRequest">
-                        <i class="ti ti-plus"></i>
-                        คำขอใหม่
-                    </button>
-                </div>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-vcenter card-table table-hover">
+            <thead>
+                <tr>
+                    <th>เลขที่ใบ</th>
+                    <th>ฝ่าย/แผนก</th>
+                    <th>ผู้แจ้ง</th>
+                    <th>วันที่ใช้งาน</th>
+                    <th>สถานที่</th>
+                    <th>ประเภทรถ</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model) {
+                    <tr>
+                        <td>@item.RequestNo</td>
+                        <td><div>@item.DepartmentName</div></td>
+                        <td><div>@item.EditName</div></td>
+                        <td>
+                            <div>@item.StartDate.ToString("dd/MM/yyyy HH:mm")</div>
+                            <div class="text-muted small">ถึง @item.EndDate.ToString("dd/MM/yyyy HH:mm")</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">@item.Location</div>
+                            <div class="text-muted small">@item.Province</div>
+                        </td>
+                        <td>
+                            @if (item.VehicleType == "van") {<span class="badge bg-azure-lt"><i class="fas fa-shuttle-van me-1"></i> รถตู้</span> }
+                            else if (item.VehicleType == "truck") { <span class="badge bg-orange-lt"><i class="fas fa-truck me-1"></i> กระบะ</span> }
+                            else { <span class="badge bg-blue-lt"><i class="fas fa-car me-1"></i> รถเก๋ง</span>}
+                        </td>
+                        <td>
+                            <span class="badge @StatusClass(item.RequestStatus)">@StatusLabel(item.RequestStatus)</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-ghost-primary" onclick="openModal(@item.Id)">รายละเอียด</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal modal-blur fade" id="modal-vehicle" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-title">รายละเอียดการขอใช้รถ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+            <div class="modal-body">
+                <input type="hidden" id="hdnId" value="0">
+                <input type="hidden" id="txtStatus" value="P01" />
 
-            <!-- Filter -->
-            <div class="card-body border-bottom py-3">
-                <form id="formSearch" class="row g-2">
-                    <div class="col-md-4">
-                        <label class="form-label">ฝ่าย/แผนก</label>
-                        <select class="form-select" id="DepartmentId">
-                            <option value="">-- ทั้งหมด --</option>
-                            @* เติม option จาก ViewBag.DepartmentList หรือ API *@
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">แผนก</label>
+                        <select id="ddlDepartment" class="form-select">
+                            <option value="">-- เลือกแผนก --</option>
+                            <option value="PRD">ฝ่ายผลิต</option>
+                            <option value="ENG">ฝ่ายวิศวกรรม</option>
+                            <option value="HR">ฝ่ายบุคคล</option>
+                            <option value="ACC">ฝ่ายบัญชี</option>
+                            <option value="LOG">ฝ่ายโลจิสติกส์</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">วันที่ใช้งานตั้งแต่</label>
-                        <input type="date" class="form-control" id="UseDateFrom" />
+                    <div class="col-6">
+                        <label class="form-label">เลขที่คำขอ</label>
+                        <input class="form-control" id="txtRequestNo" readonly />
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ถึงวันที่</label>
-                        <input type="date" class="form-control" id="UseDateTo" />
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-primary w-100" id="btnSearch">
-                            <i class="ti ti-search"></i> ค้นหา
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Table -->
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-vcenter table-bordered" id="tblRequests">
-                        <thead>
-                            <tr>
-                                <th style="width: 5%">#</th>
-                                <th>เลขที่คำขอ</th>
-                                <th>วันที่ใช้งาน</th>
-                                <th>ฝ่าย/แผนก</th>
-                                <th>ปลายทาง</th>
-                                <th>สถานะ</th>
-                                <th style="width: 10%"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @* ข้อมูลจะถูกเติมด้วย JS *@
-                        </tbody>
-                    </table>
                 </div>
-            </div>
-        </div>
 
-        <!-- Modal: Create / Edit Request -->
-        <div class="modal modal-blur fade" id="modal-request" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <span id="modal-title-text">สร้างคำขอใช้งานรถ</span>
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">วันที่เริ่มต้น</label>
+                        <input class="form-control" type="datetime-local" id="txtStartDate">
                     </div>
-
-                    <div class="modal-body">
-                        <form id="formRequest">
-
-                            <input type="hidden" id="RequestId" />
-
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label">วันที่ใช้งาน (เริ่ม)</label>
-                                    <input type="datetime-local" class="form-control" id="UseDateTimeFrom" required />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">วันที่ใช้งาน (สิ้นสุด)</label>
-                                    <input type="datetime-local" class="form-control" id="UseDateTimeTo" required />
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">ฝ่าย/แผนก</label>
-                                    <select class="form-select" id="RequestDepartmentId" required>
-                                        <option value="">-- เลือกฝ่าย/แผนก --</option>
-                                        @* เติม option *@
-                                    </select>
-                                </div>
-
-                                <div class="col-md-12">
-                                    <label class="form-label">ชื่อสถานที่ / สถานที่จัดงาน</label>
-                                    <div class="input-group">
-                                        <input type="text" id="txtLocation" class="form-control" placeholder="สถานที่">
-                                        <select id="ProvinceId" class="form-select" style="max-width: 250px;" required>
-                                            <option value="กรุงเทพฯ">กรุงเทพฯ</option>
-                                            <option value="สมุทรปราการ">สมุทรปราการ</option>
-                                            <option value="ชลบุรี">ชลบุรี</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-text text-danger d-none" id="province-approve3-text">
-                                        ต้องผ่านการอนุมัติ 3
-                                    </div>
-                                </div>
-
-
-                                <div class="col-md-12">
-                                    <label class="form-label">รายละเอียดสถานที่</label>
-                                    <textarea class="form-control" id="LocationDetail" rows="2"></textarea>
-                                </div>
-
-                                <div class="col-md-12">
-                                    <label class="form-label">วัตถุประสงค์</label>
-                                    <textarea class="form-control" id="Purpose" rows="2" required></textarea>
-                                </div>
-                            </div>
-
-                            <hr />
-
-                            <!-- ผู้โดยสาร -->
-                            <div class="row g-3">
-                                <div class="col-12 d-flex justify-content-between align-items-center">
-                                    <h4 class="m-0">รายชื่อผู้โดยสาร</h4>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddPassenger">
-                                        <i class="ti ti-user-plus"></i> เพิ่มผู้โดยสาร
-                                    </button>
-                                </div>
-                                <div class="col-12">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm" id="tblPassengers">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width:5%">#</th>
-                                                    <th>ชื่อ-นามสกุล</th>
-                                                    <th>หมายเหตุ</th>
-                                                    <th style="width:8%"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @* เติมด้วย JS *@
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr />
-
-                            <!-- จุดขึ้นรถ -->
-                            <div class="row g-3">
-                                <div class="col-12 d-flex justify-content-between align-items-center">
-                                    <h4 class="m-0">จุดขึ้นรถ</h4>
-                                    <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddPickup">
-                                        <i class="ti ti-map-pin-plus"></i> เพิ่มจุดขึ้นรถ
-                                    </button>
-                                </div>
-                                <div class="col-12">
-                                    <div class="table-responsive">
-                                        <table class="table table-sm" id="tblPickups">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width:5%">#</th>
-                                                    <th style="width:20%">ประเภทจุดขึ้นรถ</th>
-                                                    <th>รายละเอียด</th>
-                                                    <th style="width:8%"></th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @* เติมด้วย JS *@
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <hr />
-
-                            <!-- รายละเอียดการอนุมัติ -->
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <h4>รายละเอียดการอนุมัติ</h4>
-                                </div>
-
-                                <div class="card mb-1">
-                                    <div class="card-body py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <span class="avatar avatar-rounded bg-success text-white">
-                                                    <svg class="icon"><use xlink:href="/dist/icons/filled/check.svg"></use></svg>
-                                                </span>
-                                            </div>
-
-                                            <div class="flex-fill">
-                                                <div>
-                                                    <strong>นายสมชาย ใจดี</strong> 
-                                                    <span class="text-muted ms-2">อนุมัติขั้นตอนที่ 1</span>
-                                                </div>
-                                                <div class="text-secondary">2 days ago</div>
-
-                                            </div>
-
-                                            <div class="text-muted small text-nowrap">
-                                                02/12/2025 <br /> 14:30 
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card mb-1">
-                                    <div class="card-body py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <span class="avatar avatar-rounded bg-success text-white">
-                                                    <svg class="icon"><use xlink:href="/dist/icons/filled/check.svg"></use></svg>
-                                                </span>
-                                            </div>
-
-                                            <div class="flex-fill">
-                                                <div>
-                                                    <strong>นายสมชาย ใจดี</strong> อนุมัติขั้นตอนที่ 2
-                                                    <span class="text-muted ms-2">คำขอเลขที่ #CR-00045</span>
-                                                </div>
-                                                <div class="text-secondary">2 days ago</div>
-
-                                            </div>
-
-                                            <div class="text-muted small text-nowrap">
-                                                02/12/2025 <br /> 14:30
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="card mb-1">
-                                    <div class="card-body py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="me-3">
-                                                <span class="avatar avatar-rounded bg-info text-white">
-                                                    @*<svg class="icon"><use xlink:href="/dist/icons/filled/wash-dryclean.svg"></use></svg>*@
-                                                </span>
-                                            </div>
-
-                                            <div class="flex-fill">
-                                                <div>
-                                                    <strong>นายสมชาย ใจดี</strong> อนุมัติขั้นตอนที่ 3
-                                                    <span class="text-muted ms-2">คำขอเลขที่ #CR-00045</span>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <textarea class="form-control" id="Purpose" rows="2" required></textarea>
-
-                                                </div>
-
-                                            </div>
-
-                                            @*<div class="text-muted small text-nowrap">
-                                                02/12/2025 <br /> 14:30
-                                            </div>*@
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </form>
+                    <div class="col-6">
+                        <label class="form-label">วันที่สิ้นสุด</label>
+                        <input class="form-control" type="datetime-local" id="txtEndDate">
                     </div>
+                </div>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn me-auto" data-bs-dismiss="modal">ปิด</button>
-                        <button type="button" class="btn btn-primary" id="btnSaveRequest">
-                            บันทึกคำขอ
-                        </button>
+                <div class="mb-3">
+                    <label class="form-label">สถานที่ / จังหวัด</label>
+                    <div class="input-group">
+                        <input type="text" id="txtLocation" class="form-control" placeholder="สถานที่">
+                        <select id="ddlProvince" class="form-select" style="max-width: 250px;">
+                            <option value="กรุงเทพฯ">กรุงเทพฯ</option>
+                            <option value="สมุทรปราการ">สมุทรปราการ</option>
+                            <option value="ชลบุรี">ชลบุรี</option>
+                            <option value="สมุทรสาคร">สมุทรสาคร</option>
+                            <option value="สระบุรี">สระบุรี</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">รายละเอียดที่ตั้งสถานที่ / จุดขึ้นรถ</label>
+                    <textarea id="txtLocationDetail" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">วัตถุประสงค์</label>
+                    <textarea id="txtObjective" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">จุดขึ้นรถ</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="chkCompany" />
+                        <label class="form-check-label" for="chkCompany">ขึ้นรถที่บริษัท</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="chkOther" />
+                        <label class="form-check-label" for="chkOther">ขึ้นรถจุดอื่น</label>
+                    </div>
+                    <input type="text" id="txtPickupDetail" class="form-control mt-2 d-none" placeholder="ระบุจุดขึ้นรถอื่น" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ประเภทรถ</label>
+                    <div>
+                        <label class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="vehicleType" value="sedan"> รถเก๋ง
+                        </label>
+                        <label class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="vehicleType" value="van"> รถตู้
+                        </label>
+                        <label class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="vehicleType" value="truck"> กระบะ
+                        </label>
+                    </div>
+                </div>
+
+                <div class="row g-3" id="approval-summary">
+                    <div class="col-12">
+                        <h4 class="card-title">สถานะการอนุมัติ</h4>
+                    </div>
+                    <div class="col-12">
+                        <div class="card mb-2" id="apv1-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">ขั้นตอนที่ 1</div>
+                                        <div class="text-muted" id="apv1-detail">-</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="badge" id="apv1-status">รอดำเนินการ</div>
+                                        <div class="text-muted small" id="apv1-remark"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-2" id="apv2-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">ขั้นตอนที่ 2</div>
+                                        <div class="text-muted" id="apv2-detail">-</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="badge" id="apv2-status">รอดำเนินการ</div>
+                                        <div class="text-muted small" id="apv2-remark"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card mb-2" id="apv3-card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold">ขั้นตอนที่ 3</div>
+                                        <div class="text-muted" id="apv3-detail">-</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="badge" id="apv3-status">รอดำเนินการ</div>
+                                        <div class="text-muted small" id="apv3-remark"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3 d-none" id="approval-actions">
+                    <div class="card-body">
+                        <h4 class="card-title" id="approval-title">ดำเนินการอนุมัติ</h4>
+                        <div class="mb-3">
+                            <label class="form-label">หมายเหตุ</label>
+                            <textarea class="form-control" id="txtApprovalRemark" rows="2"></textarea>
+                            <div class="form-text">จำเป็นต้องระบุหมายเหตุเมื่อกด "ตีกลับเพื่อแก้ไข"</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-danger" id="btnApprovalReturn">ตีกลับเพื่อแก้ไข</button>
+                            <button type="button" class="btn btn-success" id="btnApprovalApprove">อนุมัติ</button>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">ปิด</button>
+                <button type="button" class="btn btn-primary" id="btnSaveModal">
+                    <i class="ti ti-device-floppy"></i> บันทึกข้อมูล
+                </button>
+            </div>
         </div>
-
     </div>
 </div>
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="~/js/vehicle-request.js"></script>
+    <script>
+        function setEditable(editable) {
+            $('#ddlDepartment, #txtStartDate, #txtEndDate, #txtLocation, #ddlProvince, #txtLocationDetail, #txtObjective, #chkCompany, #chkOther, #txtPickupDetail').prop('disabled', !editable);
+            $('input[name="vehicleType"]').prop('disabled', !editable);
+            $('#btnSaveModal').toggleClass('d-none', !editable);
+        }
+
+        function statusLevel(status) {
+            if (status === 'P02') return 1;
+            if (status === 'P03') return 2;
+            if (status === 'P04') return 3;
+            return null;
+        }
+
+        function renderApprovalSummary(data) {
+            const apv1Done = data.approveStatus1 === 1;
+            const apv2Done = data.approveStatus2 === 1;
+            const apv3Done = data.approveStatus3 === 1;
+
+            $('#apv1-detail').text(apv1Done ? `${data.approve1By} (${formatDateTimeDisplay(data.approve1Date)})` : 'รอขั้นตอนที่ 1');
+            $('#apv1-status').text(apv1Done ? 'อนุมัติแล้ว' : 'รอดำเนินการ').toggleClass('bg-success', apv1Done).toggleClass('bg-secondary', !apv1Done);
+            $('#apv1-remark').text(data.approve1Remark || '');
+
+            $('#apv2-detail').text(apv2Done ? `${data.approve2By} (${formatDateTimeDisplay(data.approve2Date)})` : 'รอขั้นตอนที่ 2');
+            $('#apv2-status').text(apv2Done ? 'อนุมัติแล้ว' : 'รอดำเนินการ').toggleClass('bg-success', apv2Done).toggleClass('bg-secondary', !apv2Done);
+            $('#apv2-remark').text(data.approve2Remark || '');
+
+            $('#apv3-detail').text(apv3Done ? `${data.approve3By} (${formatDateTimeDisplay(data.approve3Date)})` : 'รอขั้นตอนที่ 3');
+            $('#apv3-status').text(apv3Done ? 'อนุมัติแล้ว' : 'รอดำเนินการ').toggleClass('bg-success', apv3Done).toggleClass('bg-secondary', !apv3Done);
+            $('#apv3-remark').text(data.approve3Remark || '');
+        }
+
+        function toggleApprovalAction(level, statusText) {
+            if (!level || statusText === 'APPROVED') {
+                $('#approval-actions').addClass('d-none');
+                return;
+            }
+
+            $('#approval-actions').removeClass('d-none').data('level', level);
+            $('#txtApprovalRemark').val('');
+            $('#approval-title').text(`ดำเนินการอนุมัติขั้นตอนที่ ${level}`);
+        }
+
+        function showApprovalSections(status) {
+            const level = statusLevel(status);
+            const showSummary = status !== 'P01';
+            $('#approval-summary').toggleClass('d-none', !showSummary);
+
+            $('#apv1-card').toggleClass('d-none', !showSummary);
+            $('#apv2-card').toggleClass('d-none', !(showSummary && level >= 2));
+            $('#apv3-card').toggleClass('d-none', !(showSummary && level >= 3));
+
+            toggleApprovalAction(level, status);
+        }
+
+        function openModal(id) {
+            $('#hdnId').val(0);
+            $('#txtRequestNo').val('');
+            $('#txtStatus').val('P01');
+            $('input[type="text"], textarea').not('#txtRequestNo').val('');
+            $('input[type="checkbox"], input[type="radio"]').prop('checked', false);
+            $('#chkOther').change();
+            setEditable(true);
+            renderApprovalSummary({ approveStatus1: 0, approveStatus2: 0, approveStatus3: 0 });
+            showApprovalSections('P01');
+
+            var modal = new bootstrap.Modal(document.getElementById('modal-vehicle'));
+
+            if (id === 0) {
+                $('#modal-title').text('สร้างใบขอใช้รถใหม่');
+                $('#ddlDepartment').val('');
+                $('input[name="vehicleType"][value="sedan"]').prop('checked', true);
+                $('#txtStartDate').val(formatDateForInput(new Date()));
+                $('#txtEndDate').val(formatDateForInput(new Date(new Date().getTime() + 2 * 60 * 60 * 1000)));
+                modal.show();
+                return;
+            }
+
+            $.get('/VehicleRequest/GetDetail?id=' + id, function (data) {
+                if (data) {
+                    $('#modal-title').text('รายละเอียดคำขอเลขที่ ' + (data.requestNo || data.id));
+                    $('#hdnId').val(data.id);
+                    $('#txtRequestNo').val(data.requestNo);
+                    $('#txtStatus').val(data.requestStatus || 'P01');
+                    $('#ddlDepartment').val(data.departmentID);
+                    $('#txtStartDate').val(formatDateForInput(data.startDate));
+                    $('#txtEndDate').val(formatDateForInput(data.endDate));
+                    $('#txtLocation').val(data.location);
+                    $('#ddlProvince').val(data.province);
+                    $('#txtLocationDetail').val(data.luggageDetails || '');
+                    $('#txtObjective').val(data.objective);
+                    $('#chkCompany').prop('checked', data.pickupAtCompany);
+                    $('#chkOther').prop('checked', data.pickupAtOther).change();
+                    $('#txtPickupDetail').val(data.pickupOtherDetail || '');
+                    $('input[name="vehicleType"][value="' + data.vehicleType + '"]').prop('checked', true);
+
+                const status = data.requestStatus || 'P01';
+                setEditable(status === 'P01');
+                renderApprovalSummary(data);
+                showApprovalSections(status);
+
+                    modal.show();
+                }
+            });
+        }
+
+        function saveData() {
+            var data = {
+                Id: $('#hdnId').val(),
+                DepartmentID: $('#ddlDepartment').val(),
+                DepartmentName: $('#ddlDepartment option:selected').text(),
+                StartDate: $('#txtStartDate').val(),
+                EndDate: $('#txtEndDate').val(),
+                Location: $('#txtLocation').val(),
+                Province: $('#ddlProvince').val(),
+                Objective: $('#txtObjective').val(),
+                PickupAtCompany: $('#chkCompany').is(':checked'),
+                PickupAtOther: $('#chkOther').is(':checked'),
+                PickupOtherDetail: $('#txtPickupDetail').val(),
+                LuggageDetails: $('#txtLocationDetail').val(),
+                VehicleType: $('input[name="vehicleType"]:checked').val(),
+                RequestStatus: $('#txtStatus').val()
+            };
+
+            $.post('/VehicleRequest/Save', data, function (res) {
+                if (res.success) {
+                    alert('บันทึกสำเร็จ');
+                    location.reload();
+                }
+            }).fail(function (xhr) {
+                alert(xhr.responseText || 'ไม่สามารถบันทึกได้');
+            });
+        }
+
+        function submitApproval(status) {
+            const level = $('#approval-actions').data('level');
+            if (!level) return;
+            const remark = $('#txtApprovalRemark').val();
+            if (status === 2 && !remark) {
+                alert('กรุณากรอกหมายเหตุสำหรับการตีกลับ');
+                return;
+            }
+
+            $.post('/VehicleRequest/Approve', {
+                id: $('#hdnId').val(),
+                level: level,
+                status: status,
+                remark: remark
+            }, function (res) {
+                if (res.success) {
+                    alert('บันทึกการดำเนินการเรียบร้อย');
+                    location.reload();
+                }
+            });
+        }
+
+        function formatDateForInput(dateStr) {
+            if (!dateStr) return '';
+            var date = new Date(dateStr);
+            var tzconf = (date.getTimezoneOffset() * 60000);
+            var localISOTime = (new Date(date - tzconf)).toISOString().slice(0, 16);
+            return localISOTime;
+        }
+
+        function formatDateTimeDisplay(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('th-TH');
+        }
+
+        $('#chkOther').change(function () {
+            if (this.checked) $('#txtPickupDetail').removeClass('d-none');
+            else $('#txtPickupDetail').addClass('d-none');
+        });
+
+        $('#btnSaveModal').on('click', saveData);
+        $('#btnApprovalApprove').on('click', function () { submitApproval(1); });
+        $('#btnApprovalReturn').on('click', function () { submitApproval(2); });
+    </script>
 }

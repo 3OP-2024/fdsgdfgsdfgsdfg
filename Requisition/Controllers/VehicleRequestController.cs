@@ -138,6 +138,8 @@ namespace Requisition.Controllers {
                     existing.DepartmentID = model.DepartmentID;
                     existing.DepartmentName = ResolveDepartmentName(model.DepartmentID);
                     existing.RequireApproveLevel3 = model.Province == "กรุงเทพฯ" || model.RequireApproveLevel3;
+
+                   
                 }
             }
             return Ok(new { success = true, message = "บันทึกข้อมูลเรียบร้อย" });

@@ -11,13 +11,18 @@ namespace Requisition.Models {
         public string RequestStatus { get; set; } // P01, P02, P03, P04
 
         // 3.1 วันที่ใช้งาน
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTime UseDateTimeFrom { get; set; }
+        public DateTime UseDateTimeTo { get; set; }
+
+        // Backward compatible mapping with the existing view fields
+        public DateTime StartDate { get { return UseDateTimeFrom; } set { UseDateTimeFrom = value; } }
+        public DateTime EndDate { get { return UseDateTimeTo; } set { UseDateTimeTo = value; } }
 
         // 3.2 - 3.4 ข้อมูลทั่วไป
         public string Location { get; set; } // สถานที่
         public string Province { get; set; } // จังหวัด
-        public string Objective { get; set; } // วัตถุประสงค์
+        public string LocationDetail { get; set; }
+        public string Purpose { get; set; } // วัตถุประสงค์
 
         // 3.5 สิ่งของสัมภาระ
         public string LuggageDetails { get; set; }
@@ -26,12 +31,14 @@ namespace Requisition.Models {
         // 3.6 ผู้โดยสาร (ตัวอย่างรับเป็น string list หรือ comma separated)
         public string PassengerNames { get; set; }
         public IFormFile PassengerListImage { get; set; } // ภาพรายชื่อหรือภาพผู้โดยสาร
+        public List<VehiclePassengerViewModel> Passengers { get; set; } = new List<VehiclePassengerViewModel>();
 
         // 3.7 จุดขึ้นรถ (เลือกได้มากกว่า 1)
         public bool PickupAtCompany { get; set; }
         public bool PickupAtOther { get; set; }
         public string PickupOtherDetail { get; set; }
         public IFormFile PickupMapImage { get; set; } // ภาพแผนที่
+        public List<VehiclePickupPointViewModel> PickupPoints { get; set; } = new List<VehiclePickupPointViewModel>();
 
         // 3.8 ประเภทรถ (SelectGroup)
         public string VehicleType { get; set; } // Sedan, Van, Truck
@@ -53,6 +60,21 @@ namespace Requisition.Models {
         public string EditName { get; set; }
         public string DepartmentName { get; set; }
         public string DepartmentID { get; set; }
+        public string RequestDepartmentId { get { return DepartmentID; } set { DepartmentID = value; } }
+        public string RequestDepartmentName { get { return DepartmentName; } set { DepartmentName = value; } }
+
+        public bool RequireApproveLevel3 { get; set; }
+
+    }
+
+    public class VehiclePassengerViewModel {
+        public string FullName { get; set; }
+        public string Remark { get; set; }
+    }
+
+    public class VehiclePickupPointViewModel {
+        public string PickupType { get; set; }
+        public string Detail { get; set; }
 
     }
 }

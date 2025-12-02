@@ -17,35 +17,48 @@ namespace Requisition.Controllers {
                 var locations = new[] { "โรงงานบางนา", "นิคมอมตะ", "ลูกค้าสมุทรสาคร", "สำนักงานใหญ่", "โรงงานแปรรูปไก่" };
                 var provinces = new[] { "สมุทรปราการ", "ชลบุรี", "สมุทรสาคร", "กรุงเทพฯ", "สระบุรี" };
                 var departments = new[] { "ฝ่ายผลิต", "ฝ่ายบุคคล", "ฝ่ายบัญชี", "วิศวกรรม", "โลจิสติกส์" };
+                var departmentIds = new[] { "PRD", "HR", "ACC", "ENG", "LOG" };
 
                 for (int i = 1; i <= 10; i++) {
-                    var status = i <= 3 ? "P01" : (i <= 6 ? "P02" : (i <= 8 ? "P03" : "P04"));
+                    string status;
+                    if (i <= 3) status = "P01";
+                    else if (i <= 6) status = "P02";
+                    else if (i <= 8) status = "P03";
+                    else status = "P04";
 
-                    var approveStatus1 = status switch {
-                        "P03" => 1,
-                        "P04" => 1,
-                        _ => 0
+                    var approveStatus1 = 0;
+                    if (status == "P03" || status == "P04") approveStatus1 = 1;
+
+                    var approveStatus2 = 0;
+                    if (status == "P04") approveStatus2 = 1;
+
+                    var passengers = new List<VehiclePassengerViewModel> {
+                        new VehiclePassengerViewModel { FullName = "สมชาย ใจดี", Remark = "ผู้ขอ" },
+                        new VehiclePassengerViewModel { FullName = "พนักงานคนที่ " + i, Remark = "" }
                     };
 
-                    var approveStatus2 = status switch {
-                        "P04" => 1,
-                        _ => 0
+                    var pickups = new List<VehiclePickupPointViewModel> {
+                        new VehiclePickupPointViewModel { PickupType = "สำนักงานใหญ่", Detail = "อาคาร A โซนจอดรถ 2" },
+                        new VehiclePickupPointViewModel { PickupType = "จุดอื่น", Detail = "นัดหมายหน้าปั๊ม ปตท." }
                     };
 
                     _mockData.Add(new VehicleRequestViewModel {
                         Id = i,
                         RequestNo = $"VR-{i:0000}",
                         RequestStatus = status,
-                        StartDate = DateTime.Now.AddDays(i),
-                        EndDate = DateTime.Now.AddDays(i).AddHours(4),
+                        UseDateTimeFrom = DateTime.Now.AddDays(i),
+                        UseDateTimeTo = DateTime.Now.AddDays(i).AddHours(4),
                         Location = locations[i % locations.Length],
                         Province = provinces[i % provinces.Length],
-                        Objective = $"เดินทางไปตรวจงานโปรเจกต์ที่ {i}",
+                        LocationDetail = "ชั้น 2 ห้องประชุมใหญ่",
+                        Purpose = $"เดินทางไปตรวจงานโปรเจกต์ที่ {i}",
                         LuggageDetails = i % 2 == 0 ? "เครื่องมือช่าง, กล่องเอกสาร" : "ไม่มี",
                         PassengerNames = $"สมชาย ใจดี, พนักงานคนที่ {i}",
+                        Passengers = passengers,
                         PickupAtCompany = true,
                         PickupAtOther = i % 3 == 0, // บางคนรับจุดอื่น
                         PickupOtherDetail = i % 3 == 0 ? "หน้าปั๊ม ปตท." : "",
+                        PickupPoints = pickups,
                         VehicleType = i % 2 == 0 ? "van" : "sedan",
                         ApproveStatus1 = approveStatus1,
                         ApproveStatus2 = approveStatus2,
@@ -60,8 +73,9 @@ namespace Requisition.Controllers {
                         Approve3Date = null,
                         Approve3Remark = string.Empty,
                         EditName = "สมชาย ใจดี",
+                        DepartmentID = departmentIds[i % departmentIds.Length],
                         DepartmentName = departments[i % departments.Length],
-                        DepartmentID = $"D-{i % departments.Length + 1}"
+                        RequireApproveLevel3 = provinces[i % provinces.Length] == "กรุงเทพฯ"
                     });
                 }
             }
@@ -84,14 +98,22 @@ namespace Requisition.Controllers {
         // POST: เพิ่ม (Add) หรือ แก้ไข (Update)
         [HttpPost]
         public IActionResult Save(VehicleRequestViewModel model) {
+            if (model.Passengers == null) model.Passengers = new List<VehiclePassengerViewModel>();
+            if (model.PickupPoints == null) model.PickupPoints = new List<VehiclePickupPointViewModel>();
+
+            if (string.IsNullOrWhiteSpace(model.PassengerNames) && model.Passengers.Any()) {
+                model.PassengerNames = string.Join(", ", model.Passengers.Select(x => x.FullName));
+            }
+
             if (model.Id == 0) // กรณี Add ใหม่
             {
-                model.Id = _mockData.Max(x => x.Id) + 1;
+                model.Id = _mockData.Any() ? _mockData.Max(x => x.Id) + 1 : 1;
                 model.RequestNo = $"VR-{model.Id:0000}";
                 model.ApproveStatus1 = 0; // เริ่มต้นรออนุมัติ
                 model.RequestStatus = "P01";
                 model.EditName = string.IsNullOrEmpty(model.EditName) ? "ผู้ขอ" : model.EditName;
                 model.DepartmentName = ResolveDepartmentName(model.DepartmentID);
+                model.RequireApproveLevel3 = model.Province == "กรุงเทพฯ";
                 _mockData.Add(model);
             } else // กรณี Update
               {
@@ -99,19 +121,25 @@ namespace Requisition.Controllers {
                 if (existing != null) {
                     if (existing.RequestStatus != "P01") return BadRequest("ไม่สามารถแก้ไขได้ในสถานะปัจจุบัน");
 
-                    existing.StartDate = model.StartDate;
-                    existing.EndDate = model.EndDate;
+                    existing.UseDateTimeFrom = model.UseDateTimeFrom;
+                    existing.UseDateTimeTo = model.UseDateTimeTo;
                     existing.Location = model.Location;
                     existing.Province = model.Province;
-                    existing.Objective = model.Objective;
+                    existing.LocationDetail = model.LocationDetail;
+                    existing.Purpose = model.Purpose;
                     existing.LuggageDetails = model.LuggageDetails;
                     existing.PassengerNames = model.PassengerNames;
+                    existing.Passengers = model.Passengers;
                     existing.PickupAtCompany = model.PickupAtCompany;
                     existing.PickupAtOther = model.PickupAtOther;
                     existing.PickupOtherDetail = model.PickupOtherDetail;
+                    existing.PickupPoints = model.PickupPoints;
                     existing.VehicleType = model.VehicleType;
                     existing.DepartmentID = model.DepartmentID;
                     existing.DepartmentName = ResolveDepartmentName(model.DepartmentID);
+                    existing.RequireApproveLevel3 = model.Province == "กรุงเทพฯ" || model.RequireApproveLevel3;
+
+                   
                 }
             }
             return Ok(new { success = true, message = "บันทึกข้อมูลเรียบร้อย" });
@@ -154,14 +182,20 @@ namespace Requisition.Controllers {
         }
 
         private string ResolveDepartmentName(string departmentId) {
-            return departmentId switch {
-                "PRD" => "ฝ่ายผลิต",
-                "ENG" => "ฝ่ายวิศวกรรม",
-                "HR" => "ฝ่ายบุคคล",
-                "ACC" => "ฝ่ายบัญชี",
-                "LOG" => "ฝ่ายโลจิสติกส์",
-                _ => departmentId
-            };
+            switch (departmentId) {
+                case "PRD":
+                    return "ฝ่ายผลิต";
+                case "ENG":
+                    return "ฝ่ายวิศวกรรม";
+                case "HR":
+                    return "ฝ่ายบุคคล";
+                case "ACC":
+                    return "ฝ่ายบัญชี";
+                case "LOG":
+                    return "ฝ่ายโลจิสติกส์";
+                default:
+                    return departmentId;
+            }
         }
     }
 

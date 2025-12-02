@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 namespace Requisition.Models {
     public class VehicleRequestViewModel {
         public int Id { get; set; }
+        public string RequestNo { get; set; }
+        public string RequestStatus { get; set; } // P01, P02, P03, P04
 
         // 3.1 วันที่ใช้งาน
         public DateTime StartDate { get; set; }
@@ -38,6 +40,15 @@ namespace Requisition.Models {
         public int ApproveStatus1 { get; set; }
         public int ApproveStatus2 { get; set; }
         public int ApproveStatus3 { get; set; }
+        public string Approve1By { get; set; }
+        public DateTime? Approve1Date { get; set; }
+        public string Approve1Remark { get; set; }
+        public string Approve2By { get; set; }
+        public DateTime? Approve2Date { get; set; }
+        public string Approve2Remark { get; set; }
+        public string Approve3By { get; set; }
+        public DateTime? Approve3Date { get; set; }
+        public string Approve3Remark { get; set; }
 
         public string EditName { get; set; }
         public string DepartmentName { get; set; }
